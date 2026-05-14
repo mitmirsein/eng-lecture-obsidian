@@ -1,0 +1,11 @@
+{
+  "id": "mosaic-lecture",
+  "name": "Mosaic Lecture",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Generate Korean MASTER/TEACHER lecture assets from passage notes.",
+  "author": "Mosaic Curriculum Pipeline",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
+

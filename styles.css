@@ -1,0 +1,55 @@
+.mosaic-settings {
+  max-width: 760px;
+}
+
+.mosaic-settings-header {
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+}
+
+.mosaic-settings-header h2 {
+  margin-bottom: 6px;
+}
+
+.mosaic-settings-description {
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.mosaic-settings-section {
+  margin-top: 28px;
+  padding-top: 10px;
+}
+
+.mosaic-settings-section h3 {
+  font-size: 1.05em;
+  margin: 0 0 6px;
+}
+
+.mosaic-status {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 12px;
+  padding: 4px 8px;
+}
+
+.mosaic-status-ok {
+  color: var(--text-success);
+}
+
+.mosaic-status-warn {
+  color: var(--text-warning);
+}
+
+.mosaic-checklist {
+  color: var(--text-normal);
+  line-height: 1.65;
+  margin-top: 10px;
+  padding-left: 20px;
+}
