@@ -18,27 +18,27 @@ const PROVIDER_CONFIGS: Record<string, { name: string; endpoint: string; models:
   openai: {
     name: "OpenAI",
     endpoint: "https://api.openai.com/v1/chat/completions",
-    models: ["gpt-5.4-pro", "gpt-5.5-instant", "gpt-5.4-thinking"],
+    models: ["gpt-4o", "gpt-4o-mini", "o1-preview", "o1-mini"],
   },
   claude: {
     name: "Claude (via OpenRouter)",
     endpoint: "https://openrouter.ai/api/v1/chat/completions",
-    models: ["anthropic/claude-4.7-opus", "anthropic/claude-4.6-sonnet", "anthropic/claude-4-haiku"],
+    models: ["anthropic/claude-3.5-sonnet", "anthropic/claude-3.5-haiku", "anthropic/claude-3-opus"],
   },
   gemini: {
     name: "Gemini",
     endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-    models: ["gemini-3.1-pro", "gemini-3.1-flash", "gemini-3-pro"],
+    models: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash-exp"],
   },
   grok: {
     name: "Grok (xAI)",
     endpoint: "https://api.x.ai/v1/chat/completions",
-    models: ["grok-4.3", "grok-4", "grok-4-fast"],
+    models: ["grok-2", "grok-2-1212", "grok-beta"],
   },
   openrouter: {
     name: "OpenRouter",
     endpoint: "https://openrouter.ai/api/v1/chat/completions",
-    models: ["anthropic/claude-4.7-opus", "google/gemini-3.1-pro", "openai/gpt-5.4-pro"],
+    models: ["anthropic/claude-3.5-sonnet", "google/gemini-pro-1.5", "openai/gpt-4o"],
   },
   custom: {
     name: "Custom (OpenAI-compatible)",
