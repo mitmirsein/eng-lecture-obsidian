@@ -1,7 +1,7 @@
 {
   "id": "mosaic-eng-lecture",
   "name": "Mosaic Eng Lecture",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "minAppVersion": "1.5.0",
   "description": "Generate Korean forensic integrated lecture assets (MOSAIC) from passage notes.",
   "author": "Mosaic Curriculum Pipeline",
