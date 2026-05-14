@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS: MosaicSettings = {
   defaultTargetGrade: "고등",
   generatePdf: true,
   pandocPath: "",
+  xelatexPath: "",
 };
 
 export const API_KEY_SECRET_ID = "mosaic-eng-lecture-api-key";
@@ -201,6 +202,17 @@ export class MosaicSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.pandocPath)
         .onChange(async (value) => {
           this.plugin.settings.pandocPath = value.trim();
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName("XeLaTeX path")
+      .setDesc("비워두면 PATH와 macOS TeX 기본 설치 위치를 자동 탐색한다. 예: /Library/TeX/texbin/xelatex")
+      .addText((text) => text
+        .setPlaceholder("/Library/TeX/texbin/xelatex")
+        .setValue(this.plugin.settings.xelatexPath)
+        .onChange(async (value) => {
+          this.plugin.settings.xelatexPath = value.trim();
           await this.plugin.saveSettings();
         }));
 

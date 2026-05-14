@@ -8,6 +8,7 @@ export interface MosaicSettings {
   defaultTargetGrade: string;
   generatePdf: boolean;
   pandocPath: string;
+  xelatexPath: string;
 }
 
 export interface GenerationInput {

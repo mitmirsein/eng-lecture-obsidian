@@ -27,6 +27,16 @@ function commandWorks(command: string, args: string[] = ["--version"]): boolean 
   }
 }
 
+function findExecutable(configuredPath: string, candidates: string[]): string | undefined {
+  const configured = configuredPath.trim();
+  return [configured, ...candidates].filter(Boolean).find((candidate) => {
+    if (candidate.includes("/")) {
+      return existsSync(candidate) && commandWorks(candidate);
+    }
+    return commandWorks(candidate);
+  });
+}
+
 export default class MosaicLecturePlugin extends Plugin {
   settings: MosaicSettings = { ...DEFAULT_SETTINGS };
 
@@ -307,26 +317,36 @@ ${errorMessage(error)}
     const adapter = this.app.vault.adapter as FileSystemAdapter;
     const mdPath = adapter.getFullPath(file.path);
     const pdfPath = mdPath.replace(/\.md$/, ".pdf");
-    const configuredPandoc = this.settings.pandocPath.trim();
-    const pandocCandidates = [
-      configuredPandoc,
+    const pandoc = findExecutable(this.settings.pandocPath, [
       "pandoc",
       "/opt/homebrew/bin/pandoc",
       "/usr/local/bin/pandoc",
       "/usr/bin/pandoc",
-    ].filter(Boolean);
-    const pandoc = pandocCandidates.find((candidate) => {
-      if (candidate.includes("/")) {
-        return existsSync(candidate) && commandWorks(candidate);
-      }
-      return commandWorks(candidate);
-    });
+    ]);
 
     if (!pandoc) {
+      const configuredPandoc = this.settings.pandocPath.trim();
       const hint = configuredPandoc
         ? `설정된 Pandoc 경로를 확인하세요: ${configuredPandoc}`
         : "Pandoc을 설치하거나 Settings > Mosaic Eng Lecture > Pandoc path에 절대경로를 입력하세요.";
       console.warn("Mosaic PDF skipped: pandoc executable not found.", { configuredPandoc });
+      new Notice(`Mosaic: PDF 생성 건너뜀 - ${hint}`);
+      return;
+    }
+
+    const xelatex = findExecutable(this.settings.xelatexPath, [
+      "xelatex",
+      "/Library/TeX/texbin/xelatex",
+      "/opt/homebrew/bin/xelatex",
+      "/usr/local/bin/xelatex",
+    ]);
+
+    if (!xelatex) {
+      const configuredXelatex = this.settings.xelatexPath.trim();
+      const hint = configuredXelatex
+        ? `설정된 XeLaTeX 경로를 확인하세요: ${configuredXelatex}`
+        : "MacTeX 또는 BasicTeX를 설치하거나 Settings > Mosaic Eng Lecture > XeLaTeX path에 절대경로를 입력하세요.";
+      console.warn("Mosaic PDF skipped: xelatex executable not found.", { configuredXelatex });
       new Notice(`Mosaic: PDF 생성 건너뜀 - ${hint}`);
       return;
     }
@@ -336,7 +356,7 @@ ${errorMessage(error)}
     try {
       execFileSync(pandoc, [
         mdPath,
-        "--pdf-engine=xelatex",
+        `--pdf-engine=${xelatex}`,
         "-V",
         "geometry:a4paper,margin=3cm",
         "-V",

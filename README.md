@@ -30,6 +30,9 @@ Mosaic 커리큘럼 파이프라인의 Obsidian 네이티브 패키징 트랙입
    - 에디터에서 **마우스 우클릭** 후 `Generate Mosaic Lecture Asset`을 선택합니다.
 3. **결과 확인**: 설정된 출력 폴더(기본: `Mosaic/outputs`)에 분석 리포트와 교안이 생성됩니다. 원본 노트의 YAML도 자동으로 채워집니다.
 
+## PDF 자동 생성
+PDF 자동 생성은 선택 기능입니다. 사용하려면 Pandoc CLI와 XeLaTeX(MacTeX 또는 BasicTeX)를 별도로 설치해야 합니다. Obsidian Pandoc 플러그인만으로는 충분하지 않습니다.
+
 ---
 
 ### 라이선스
