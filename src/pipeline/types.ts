@@ -9,6 +9,7 @@ export interface MosaicSettings {
   generatePdf: boolean;
   pandocPath: string;
   xelatexPath: string;
+  pdfMainFont: string;
 }
 
 export interface GenerationInput {

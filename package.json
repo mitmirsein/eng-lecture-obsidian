@@ -1,6 +1,6 @@
 {
   "name": "mosaic-eng-lecture-obsidian",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Obsidian plugin track for Mosaic Curriculum Pipeline",
   "main": "main.js",
   "scripts": {

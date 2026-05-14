@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS: MosaicSettings = {
   generatePdf: true,
   pandocPath: "",
   xelatexPath: "",
+  pdfMainFont: "Bundled Pretendard",
 };
 
 export const API_KEY_SECRET_ID = "mosaic-eng-lecture-api-key";
@@ -213,6 +214,17 @@ export class MosaicSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.xelatexPath)
         .onChange(async (value) => {
           this.plugin.settings.xelatexPath = value.trim();
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName("PDF font")
+      .setDesc("기본값은 플러그인에 내장된 Pretendard다. 다른 시스템 폰트명을 입력할 수도 있다.")
+      .addText((text) => text
+        .setPlaceholder(DEFAULT_SETTINGS.pdfMainFont)
+        .setValue(this.plugin.settings.pdfMainFont)
+        .onChange(async (value) => {
+          this.plugin.settings.pdfMainFont = value.trim() || DEFAULT_SETTINGS.pdfMainFont;
           await this.plugin.saveSettings();
         }));
 

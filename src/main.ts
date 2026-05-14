@@ -1,9 +1,12 @@
 import { Notice, Plugin, TFile, MarkdownView, FileSystemAdapter } from "obsidian";
 import { execFileSync } from "child_process";
-import { existsSync } from "fs";
+import { dirname } from "path";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
+import pretendardRegularDataUrl from "../assets/fonts/pretendard/Pretendard-Regular.otf";
+import pretendardBoldDataUrl from "../assets/fonts/pretendard/Pretendard-Bold.otf";
 
 function slugify(value: string): string {
   return value
@@ -35,6 +38,57 @@ function findExecutable(configuredPath: string, candidates: string[]): string | 
     }
     return commandWorks(candidate);
   });
+}
+
+function dataUrlToBytes(dataUrl: string): Buffer {
+  const base64 = dataUrl.split(",", 2)[1];
+  if (!base64) {
+    throw new Error("Bundled font data is invalid.");
+  }
+  return Buffer.from(base64, "base64");
+}
+
+function stripSingleMarkerEmphasis(text: string, marker: "*" | "_"): string {
+  let output = "";
+  let index = 0;
+
+  while (index < text.length) {
+    const current = text[index];
+    const previous = index > 0 ? text[index - 1] : "";
+    const next = index + 1 < text.length ? text[index + 1] : "";
+    const isSingleMarker = current === marker && previous !== marker && next !== marker && next !== " ";
+
+    if (!isSingleMarker) {
+      output += current;
+      index += 1;
+      continue;
+    }
+
+    let closing = index + 1;
+    while (closing < text.length) {
+      const closeCurrent = text[closing];
+      const closePrevious = closing > 0 ? text[closing - 1] : "";
+      const closeNext = closing + 1 < text.length ? text[closing + 1] : "";
+      if (closeCurrent === "\n") break;
+      if (closeCurrent === marker && closePrevious !== marker && closeNext !== marker) break;
+      closing += 1;
+    }
+
+    if (closing >= text.length || text[closing] !== marker) {
+      output += current;
+      index += 1;
+      continue;
+    }
+
+    output += text.slice(index + 1, closing);
+    index = closing + 1;
+  }
+
+  return output;
+}
+
+function normalizeGeneratedMarkdown(markdown: string): string {
+  return stripSingleMarkerEmphasis(stripSingleMarkerEmphasis(markdown, "*"), "_");
 }
 
 export default class MosaicLecturePlugin extends Plugin {
@@ -219,6 +273,37 @@ export default class MosaicLecturePlugin extends Plugin {
     }
   }
 
+  getPluginFullPath(relativePath: string): string | undefined {
+    if (!(this.app.vault.adapter instanceof FileSystemAdapter)) {
+      return undefined;
+    }
+
+    const pluginDir = this.manifest.dir || `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
+    return this.app.vault.adapter.getFullPath(`${pluginDir}/${relativePath}`);
+  }
+
+  ensureBundledPretendardFonts(): { regular: string; bold: string } | undefined {
+    const regular = this.getPluginFullPath("assets/fonts/pretendard/Pretendard-Regular.otf");
+    const bold = this.getPluginFullPath("assets/fonts/pretendard/Pretendard-Bold.otf");
+    if (!regular || !bold) {
+      return undefined;
+    }
+
+    const fonts = [
+      { path: regular, dataUrl: pretendardRegularDataUrl },
+      { path: bold, dataUrl: pretendardBoldDataUrl },
+    ];
+
+    for (const font of fonts) {
+      if (!existsSync(font.path)) {
+        mkdirSync(dirname(font.path), { recursive: true });
+        writeFileSync(font.path, dataUrlToBytes(font.dataUrl));
+      }
+    }
+
+    return { regular, bold };
+  }
+
   async generateForSource(file: TFile, sourceText: string) {
     const cache = this.app.metadataCache.getFileCache(file);
     const frontmatter = cache?.frontmatter || {};
@@ -256,7 +341,8 @@ export default class MosaicLecturePlugin extends Plugin {
         });
       }
 
-      await this.upsertText(`${folder}/[MOSAIC]_${slug}.md`, result.masterMarkdown.trim() + "\n");
+      const masterMarkdown = normalizeGeneratedMarkdown(result.masterMarkdown.trim());
+      await this.upsertText(`${folder}/[MOSAIC]_${slug}.md`, masterMarkdown + "\n");
       
       if (this.settings.generatePdf) {
         // 방금 생성한 파일을 가져오자.
@@ -354,21 +440,41 @@ ${errorMessage(error)}
     new Notice(`Mosaic: PDF 변환 중... (${file.basename})`);
 
     try {
-      execFileSync(pandoc, [
+      const args = [
         mdPath,
         `--pdf-engine=${xelatex}`,
         "-V",
         "geometry:a4paper,margin=3cm",
         "-V",
         "linestretch=1.5",
-        "-V",
-        "mainfont=Pretendard",
-        "-o",
-        pdfPath,
+      ];
+      const pdfFont = this.settings.pdfMainFont.trim() || DEFAULT_SETTINGS.pdfMainFont;
+      const useBundledPretendard = pdfFont === DEFAULT_SETTINGS.pdfMainFont;
+      const bundledFonts = useBundledPretendard ? this.ensureBundledPretendardFonts() : undefined;
+
+      if (bundledFonts) {
+        args.push(
+          "-V",
+          `mainfont=${bundledFonts.regular}`,
+          "-V",
+          `mainfontoptions=BoldFont={${bundledFonts.bold}}`,
+          "-V",
+          `mainfontoptions=ItalicFont={${bundledFonts.regular}}`,
+          "-V",
+          `mainfontoptions=BoldItalicFont={${bundledFonts.bold}}`,
+        );
+      } else {
+        args.push("-V", `mainfont=${pdfFont}`);
+      }
+
+      args.push("-o", pdfPath);
+
+      execFileSync(pandoc, [
+        ...args,
       ]);
       new Notice(`Mosaic: PDF 생성 완료: ${file.basename}.pdf`);
     } catch (error) {
-      console.error("Mosaic PDF Error:", error);
+      console.warn("Mosaic PDF failed:", errorMessage(error));
       new Notice(`Mosaic: PDF 변환 실패 - ${errorMessage(error)}`);
     }
   }
