@@ -21,6 +21,7 @@ export default class MosaicLecturePlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    await this.ensureFolder(this.settings.outputRoot);
     this.addSettingTab(new MosaicSettingTab(this.app, this));
 
     // 사이드바 리본 아이콘 추가
