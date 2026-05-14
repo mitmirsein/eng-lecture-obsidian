@@ -289,45 +289,58 @@ ${isMaskingTarget ? "(bundle.instructors.luna.block_a_masked 사용)" : "(bundle
 
 ## 02. 엘라 & 미란다: 거시 독해
 ### **🏷️ 주제 및 요지**
-(ella 데이터)
+- **국문 주제:** ella.theme_ko 값 그대로
+- **영문 주제:** ella.theme_en 값 그대로
+- **심층 요지:** ella.main_idea_ko 값 그대로
 ### **🧩 논리 구조 및 응집성**
 | 문장 쌍 | 연결 방식 | 핵심 단어 | 논리적 결속 원리 |
-(miranda.cohesion_bridges → 표)
+(miranda.cohesion_bridges 전체 → 표. 행 누락 금지)
 > **논리 경로:** (miranda.logic_route)
 
 ---
 
 ## 03. 루나: 직독직해 (전체 복원)
-(luna.chunks → [Sn] 형식, chunk_text / literal_translation 병기)
+(luna.chunks 전체 → **[S{n}]** chunk_text (literal_translation) 형식. 문장 누락 금지)
 
 ---
 
 ## 04. 써니: 구문 정밀 해부
-(sunny.grammar_deep_dive)
-${isMaskingTarget ? "(sunny.visual_cue 포함)" : ""}
+(sunny.grammar_deep_dive — 구조 항목별로 소제목 분리 권장)
+${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 
 ---
 
 ## 05. 렉스: 어휘 및 재진술 레이어
 ### **[핵심 어휘]**
-(lex.vocabulary_entries → 불릿)
+(lex.vocabulary_entries 전체 → **word** (pos): definition — korean 형식. 누락 금지)
 ### **🔄 3단계 재진술 DB**
 | 키워드 | 동의어 | 문맥적 대체어 | 반의어 부정 |
-(lex.paraphrase_layers → 표)
+(lex.paraphrase_layers 전체 → 표. 행 누락 금지)
 
 ---
 
 ## 06. 빌라넬 & 퀼: 변형 대비 및 영작
 ### **[지문 변형 포인트]**
-(villanelle.topic_master.core_message 인용구)
-(quill.writing_tasks → Q/A 형식)
+> (villanelle.topic_master.core_message 인용구)
+
+(quill.writing_tasks → **Q{n}.** q / **Answer:** a / **Interpretation:** a_ko 형식)
 
 ---
 
 ## 07. K마스터: 변형 문항
 ### **🕵️ 출제 전략**
-(변형 전략 설명 — 원본 유형 [${triage?.problem_type ?? ""}] 중복 금지)
-(변형 문항 1-2개 설계 — 선지는 수능 실제 형식 준수)
+(kmaster_meta.design_strategy — 원본 유형 [${triage?.problem_type ?? ""}] 중복 금지)
+(변형 문항 1-2개 설계 — 선지는 수능 실제 형식, ①②③④⑤ 사용)
+
+---
+
+## 📌 **1타강사 시그니처**
+### **⚡ 5초 판별법 (원본 기출문제 기준)**
+(sunny.visual_cue 값. 없으면 insight.traps_summary에서 핵심 단서 1문장으로 도출)
+
+### **📊 함정 피해자 통계 (원본 기출문제 기준)**
+(원본 문항의 매력적 오답 1순위 선지에 대해 가공 피해자 통계 생성.
+예: "대치동 수강생 43%가 ①번을 선택했다." — 반드시 원본 문항 오답 기준, 변형 문항 혼용 금지)
 
 ## 입력 데이터
 지문 ID: ${input.slug} | 레벨: ${input.level} | 학년: ${input.targetGrade}
@@ -335,7 +348,7 @@ ${isMaskingTarget ? "(sunny.visual_cue 포함)" : ""}
 ## 규칙
 1. ~한다체 사용
 2. 이탤릭(*text*, _text_) 금지. 굵게(**text**)만
-3. 모든 섹션 데이터 빠짐없이 렌더링
+3. 모든 섹션·모든 행 빠짐없이 렌더링 (누락 = 오류)
 4. 변형 문항은 원본 유형과 반드시 다른 유형으로 설계
 
 반드시 위 JSON만 반환하라.`;
