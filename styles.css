@@ -1,55 +1,141 @@
+/* Modern Premium Design for Mosaic Eng Lecture */
+
 .mosaic-settings {
-  max-width: 760px;
+  max-width: 800px;
+  padding: 10px;
 }
 
+/* Header Section */
 .mosaic-settings-header {
-  border-bottom: 1px solid var(--background-modifier-border);
-  margin-bottom: 22px;
-  padding-bottom: 18px;
+  background: linear-gradient(135deg, var(--interactive-accent) 0%, var(--interactive-accent-hover) 100%);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 .mosaic-settings-header h2 {
-  margin-bottom: 6px;
+  margin: 0 0 10px 0;
+  color: white;
+  font-weight: 800;
+  font-size: 2em;
+  letter-spacing: -0.02em;
 }
 
-.mosaic-settings-description {
-  color: var(--text-muted);
-  line-height: 1.55;
-  margin: 0;
+.mosaic-settings-header .mosaic-settings-description {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1em;
+  max-width: 80%;
 }
 
+/* Status Badge */
+.mosaic-status {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 15px;
+  padding: 6px 14px;
+  color: white;
+}
+
+.mosaic-status::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: #ff4d4d; /* Warning */
+}
+
+.mosaic-status-ok::before {
+  background: #00ff88; /* OK */
+}
+
+/* Section Styling (Cards) */
 .mosaic-settings-section {
-  margin-top: 28px;
-  padding-top: 10px;
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mosaic-settings-section:hover {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .mosaic-settings-section h3 {
-  font-size: 1.05em;
-  margin: 0 0 6px;
+  font-size: 1.2em;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-accent);
 }
 
-.mosaic-status {
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  display: inline-flex;
-  font-size: 12px;
+.mosaic-settings-section .mosaic-settings-description {
+  margin-bottom: 16px;
+  font-size: 0.95em;
+  opacity: 0.8;
+}
+
+/* Settings Item Polish */
+.setting-item {
+  border-top: none !important;
+  padding: 14px 0 !important;
+}
+
+.setting-item-name {
   font-weight: 600;
-  margin-top: 12px;
-  padding: 4px 8px;
 }
 
-.mosaic-status-ok {
-  color: var(--text-success);
+/* Custom Buttons */
+.mosaic-settings button.mod-cta {
+  background: var(--interactive-accent);
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 6px 18px;
+  transition: all 0.2s ease;
 }
 
-.mosaic-status-warn {
-  color: var(--text-warning);
+.mosaic-settings button.mod-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
 }
 
+/* Checklist Styling */
 .mosaic-checklist {
-  color: var(--text-normal);
-  line-height: 1.65;
-  margin-top: 10px;
-  padding-left: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 15px 0 0 0;
+}
+
+.mosaic-checklist li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 10px;
+  font-size: 0.95em;
+  color: var(--text-muted);
+}
+
+.mosaic-checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--interactive-accent);
+  font-weight: bold;
+}
+
+/* Hide advanced settings when not needed */
+.setting-item-control input[type="password"] {
+  letter-spacing: 0.2em;
 }
