@@ -136,7 +136,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 - Insight: 각 오답 선지의 인지적 함정 원리 분석 (distractor_intelligence)
 - Ella: 학술 주제·심층 요지 메타인지
 - Luna: 문장별 청크 직독직해 + ${maskingNote}
-- Sunny: 핵심 구문 300자 이상 정밀 분석 + 5초 시각 판별법
+- Sunny: 핵심 구문 정밀 분석 (grammar_deep_dive 300자 이상 — reduce 지시 무관, 항상 필수) + 5초 시각 판별법
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
 - Lex: 핵심 어휘 정의 + 3단계 재진술 DB
 - Villanelle: 제목·핵심 메시지 topic_master
@@ -173,7 +173,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
       "block_a_masked": "(어법/빈칸 문항일 때만) 정답 영역 [   ] 마스킹 지문 전문"
     },
     "sunny": {
-      "grammar_deep_dive": "핵심 구문 구조 정밀 분석 (~한다체, 300자 이상)",
+      "grammar_deep_dive": "핵심 구문 구조 정밀 분석 (~한다체, 300자 이상 — reduce 지시와 무관하게 필수)",
       "visual_cue": "5초 판별법 1-2문장 (어법/빈칸 필수, 그 외 생략 가능)"
     },
     "miranda": {
@@ -337,6 +337,7 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 ### **🕵️ 출제 전략**
 (kmaster_meta.design_strategy — 원본 유형 [${triage?.problem_type ?? ""}] 중복 금지)
 (변형 문항 1-2개 설계 — 선지는 수능 실제 형식, ①②③④⑤ 사용. 문장삽입 유형은 반드시 ①~⑤ 위치 선지 5개 포함 — 선지 없으면 오류)
+(각 변형 문항 끝에 반드시 **🔑 정답: N** 표기 + 해설 1문장 추가 — 누락 = 오류)
 
 ---
 
@@ -358,6 +359,7 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 4. 변형 문항은 원본 유형과 반드시 다른 유형으로 설계
 5. cohesion_bridges 최소 3행, paraphrase_layers 최소 2행 — 미달 시 임의 행 보완 후 출력
 6. 문장삽입 변형 문항: ①~⑤ 위치 선지 5개 필수 (누락 = 오류)
+7. 변형 문항마다 🔑 정답: N + 해설 1문장 필수 (누락 = 오류)
 
 반드시 위 JSON만 반환하라.`;
 }
