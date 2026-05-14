@@ -24,8 +24,8 @@ export default class MosaicLecturePlugin extends Plugin {
     this.addSettingTab(new MosaicSettingTab(this.app, this));
 
     this.addCommand({
-      id: "generate-master-teacher",
-      name: "Generate MASTER/TEACHER",
+      id: "generate-lecture-asset",
+      name: "Generate Lecture Asset",
       editorCallback: async (editor, view) => {
         const selected = editor.getSelection();
         const file = view.file;

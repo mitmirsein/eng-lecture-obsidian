@@ -70,7 +70,7 @@ export class MosaicSettingTab extends PluginSettingTab {
     const header = containerEl.createDiv({ cls: "mosaic-settings-header" });
     header.createEl("h2", { text: "Mosaic Eng Lecture" });
     header.createEl("p", {
-      text: "현재 노트나 선택 영역을 한국어 MASTER/TEACHER 강의 자산으로 생성한다.",
+      text: "현재 노트나 선택 영역을 한국어 통합 강의 자산(MOSAIC)으로 생성한다.",
       cls: "mosaic-settings-description",
     });
 
@@ -314,15 +314,15 @@ export class MosaicSettingTab extends PluginSettingTab {
     section(
       containerEl,
       "Run Checklist",
-      "노트에서 지문 전문 또는 필요한 선택 영역을 잡은 뒤 Command Palette에서 Mosaic: Generate MASTER/TEACHER를 실행한다.",
+      "노트에서 지문 전문 또는 필요한 선택 영역을 잡은 뒤 Command Palette에서 Mosaic: Generate Lecture Asset을 실행한다.",
     );
 
     const checklist = containerEl.createEl("ul", { cls: "mosaic-checklist" });
     [
       "API key가 configured 상태인지 확인한다.",
       "지문, 발문, 선지, 정답이 가능한 한 한 노트에 함께 들어 있어야 한다.",
-      "생성 결과는 Output folder 아래 source.md, [MASTER], [TEACHER], run-log.json으로 저장된다.",
-      "실패 시 run-log.json에 실패 원인을 남긴다.",
+      "생성 결과는 Output folder 아래 source.md, [MOSAIC]_.md, run-report.md로 저장된다.",
+      "실패 시 run-report.md에 실패 원인을 남긴다.",
     ].forEach((item) => checklist.createEl("li", { text: item }));
   }
 }
