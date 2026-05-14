@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile } from "obsidian";
+import { Notice, Plugin, TFile, MarkdownView } from "obsidian";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
@@ -22,6 +22,50 @@ export default class MosaicLecturePlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new MosaicSettingTab(this.app, this));
+
+    // 사이드바 리본 아이콘 추가
+    this.addRibbonIcon("book-open-check", "Mosaic: Generate Lecture Asset", async () => {
+      const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (!view || !view.file) {
+        new Notice("Mosaic: 활성화된 노트가 없습니다.");
+        return;
+      }
+      const editor = view.editor;
+      const sourceText = editor.getValue().trim();
+      if (!sourceText) {
+        new Notice("Mosaic: 분석할 내용이 없습니다.");
+        return;
+      }
+      try {
+        await this.generateForSource(view.file, sourceText);
+      } catch (error) {
+        new Notice(`Mosaic: 생성 실패 - ${errorMessage(error)}`);
+      }
+    });
+
+    // 마우스 우클릭 메뉴 추가
+    this.registerEvent(
+      this.app.workspace.on("editor-menu", (menu, editor, view) => {
+        menu.addItem((item) => {
+          item
+            .setTitle("Generate Mosaic Lecture Asset")
+            .setIcon("book-open-check")
+            .onClick(async () => {
+              const file = view.file;
+              const sourceText = editor.getSelection().trim() || editor.getValue().trim();
+              if (!file || !sourceText) {
+                new Notice("Mosaic: 분석할 내용이 없습니다.");
+                return;
+              }
+              try {
+                await this.generateForSource(file, sourceText);
+              } catch (error) {
+                new Notice(`Mosaic: 생성 실패 - ${errorMessage(error)}`);
+              }
+            });
+        });
+      })
+    );
 
     this.addCommand({
       id: "generate-lecture-asset",
