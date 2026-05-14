@@ -205,24 +205,91 @@ export class MosaicSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Default level")
       .setDesc("예: M3, H1, H2. 선택 영역에 별도 메타데이터가 없을 때 사용한다.")
-      .addText((text) => text
-        .setPlaceholder(DEFAULT_SETTINGS.defaultLevel)
-        .setValue(this.plugin.settings.defaultLevel)
-        .onChange(async (value) => {
-          this.plugin.settings.defaultLevel = value.trim() || DEFAULT_SETTINGS.defaultLevel;
-          await this.plugin.saveSettings();
-        }));
+      .addDropdown((dropdown) => {
+        const options: Record<string, string> = {
+          "m1": "M1 (중1)",
+          "m2": "M2 (중2)",
+          "m3": "M3 (중3)",
+          "h1": "H1 (고1)",
+          "h2": "H2 (고2)",
+          "h3": "H3 (고3)",
+          "custom": "기타 (직접 입력)"
+        };
+        Object.entries(options).forEach(([k, v]) => dropdown.addOption(k, v));
+        
+        // 초기값 설정: 기존 값이 리스트에 없으면 custom으로 처리
+        const currentVal = this.plugin.settings.defaultLevel.toLowerCase();
+        if (options[currentVal]) {
+          dropdown.setValue(currentVal);
+        } else {
+          dropdown.setValue("custom");
+        }
+
+        dropdown.onChange(async (value) => {
+          if (value !== "custom") {
+            this.plugin.settings.defaultLevel = value.toUpperCase();
+            await this.plugin.saveSettings();
+          }
+          this.display();
+        });
+      });
+
+    if (!["m1", "m2", "m3", "h1", "h2", "h3"].includes(this.plugin.settings.defaultLevel.toLowerCase())) {
+      new Setting(containerEl)
+        .setName("Custom level")
+        .setDesc("원하는 레벨을 직접 입력한다.")
+        .addText((text) => {
+          text
+            .setPlaceholder("예: University")
+            .setValue(this.plugin.settings.defaultLevel)
+            .onChange(async (value) => {
+              this.plugin.settings.defaultLevel = value.trim();
+              await this.plugin.saveSettings();
+            });
+        });
+    }
 
     new Setting(containerEl)
       .setName("Default target grade")
-      .setDesc("예: 중등, 고등. 해설의 난도와 어조를 결정하는 기본값이다.")
-      .addText((text) => text
-        .setPlaceholder(DEFAULT_SETTINGS.defaultTargetGrade)
-        .setValue(this.plugin.settings.defaultTargetGrade)
-        .onChange(async (value) => {
-          this.plugin.settings.defaultTargetGrade = value.trim() || DEFAULT_SETTINGS.defaultTargetGrade;
-          await this.plugin.saveSettings();
-        }));
+      .setDesc("예: 중등, 고등. 해설의 난이도와 어조를 결정하는 기본값이다.")
+      .addDropdown((dropdown) => {
+        const options: Record<string, string> = {
+          "중등": "중등",
+          "고등": "고등",
+          "custom": "기타 (직접 입력)"
+        };
+        Object.entries(options).forEach(([k, v]) => dropdown.addOption(k, v));
+
+        const currentVal = this.plugin.settings.defaultTargetGrade;
+        if (options[currentVal]) {
+          dropdown.setValue(currentVal);
+        } else {
+          dropdown.setValue("custom");
+        }
+
+        dropdown.onChange(async (value) => {
+          if (value !== "custom") {
+            this.plugin.settings.defaultTargetGrade = value;
+            await this.plugin.saveSettings();
+          }
+          this.display();
+        });
+      });
+
+    if (!["중등", "고등"].includes(this.plugin.settings.defaultTargetGrade)) {
+      new Setting(containerEl)
+        .setName("Custom target grade")
+        .setDesc("원하는 대상 학년을 직접 입력한다.")
+        .addText((text) => {
+          text
+            .setPlaceholder("예: 초등, 성인")
+            .setValue(this.plugin.settings.defaultTargetGrade)
+            .onChange(async (value) => {
+              this.plugin.settings.defaultTargetGrade = value.trim();
+              await this.plugin.saveSettings();
+            });
+        });
+    }
 
     section(
       containerEl,
