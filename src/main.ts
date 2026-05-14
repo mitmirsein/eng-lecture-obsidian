@@ -23,8 +23,13 @@ export default class MosaicLecturePlugin extends Plugin {
     await this.loadSettings();
     
     let changed = false;
-    // 이전 설정 마이그레이션 (Mosaic/outputs -> Mosaic_Eng/Outputs)
-    if (this.settings.outputRoot === "Mosaic/outputs" || this.settings.outputRoot === "Mosaic" || this.settings.outputRoot === "Mosaic_Eng") {
+    // 이전 설정 마이그레이션 (Mosaic 관련 모든 경로를 Mosaic_Eng/Outputs로 통합)
+    if (this.settings.outputRoot.includes("Mosaic/") && !this.settings.outputRoot.includes("Mosaic_Eng")) {
+      this.settings.outputRoot = "Mosaic_Eng/Outputs";
+      changed = true;
+    }
+    // 예외적인 이전 표준명들 처리
+    if (this.settings.outputRoot === "Mosaic" || this.settings.outputRoot === "Mosaic_Eng") {
       this.settings.outputRoot = "Mosaic_Eng/Outputs";
       changed = true;
     }

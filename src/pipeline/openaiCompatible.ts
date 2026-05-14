@@ -1,3 +1,4 @@
+import { requestUrl } from "obsidian";
 import type { GenerationInput, GenerationOutput, MosaicSettings } from "./types";
 import { buildGenerationPrompt } from "./prompt";
 
@@ -61,17 +62,18 @@ export async function generateLectureAssets(
         max_tokens: 8192,
       };
 
-  const response = await fetch(settings.endpoint, {
+  const response = await requestUrl({
+    url: settings.endpoint,
     method: "POST",
     headers,
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    throw new Error(`LLM request failed: HTTP ${response.status}`);
+  if (response.status !== 200) {
+    throw new Error(`LLM request failed: HTTP ${response.status} - ${response.text}`);
   }
 
-  const data = await response.json();
+  const data = response.json;
   let content: string | undefined;
 
   if (isAnthropic) {
