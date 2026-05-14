@@ -136,19 +136,20 @@ export class MosaicSettingTab extends PluginSettingTab {
 
     const isCustom = this.plugin.settings.provider === "custom";
     
-    new Setting(containerEl)
-      .setName("API Endpoint")
-      .setDesc(isCustom ? "OpenAI 호환 API 엔드포인트를 직접 입력한다." : "현재 제공자의 기본 엔드포인트가 사용된다.")
-      .addText((text) => {
-        text
-          .setPlaceholder("https://api.example.com/v1/chat/completions")
-          .setValue(this.plugin.settings.endpoint)
-          .setDisabled(!isCustom)
-          .onChange(async (value) => {
-            this.plugin.settings.endpoint = value.trim();
-            await this.plugin.saveSettings();
-          });
-      });
+    if (isCustom) {
+      new Setting(containerEl)
+        .setName("API Endpoint")
+        .setDesc("OpenAI 호환 API 엔드포인트를 직접 입력한다.")
+        .addText((text) => {
+          text
+            .setPlaceholder("https://api.example.com/v1/chat/completions")
+            .setValue(this.plugin.settings.endpoint)
+            .onChange(async (value) => {
+              this.plugin.settings.endpoint = value.trim();
+              await this.plugin.saveSettings();
+            });
+        });
+    }
 
     const currentModels = PROVIDER_CONFIGS[this.plugin.settings.provider]?.models || [];
     
