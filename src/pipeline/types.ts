@@ -7,6 +7,7 @@ export interface MosaicSettings {
   defaultLevel: string;
   defaultTargetGrade: string;
   generatePdf: boolean;
+  pandocPath: string;
 }
 
 export interface GenerationInput {
@@ -28,4 +29,3 @@ export interface GenerationOutput {
   };
   raw: unknown;
 }
-

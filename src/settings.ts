@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: MosaicSettings = {
   defaultLevel: "H1",
   defaultTargetGrade: "고등",
   generatePdf: true,
+  pandocPath: "",
 };
 
 export const API_KEY_SECRET_ID = "mosaic-eng-lecture-api-key";
@@ -184,11 +185,22 @@ export class MosaicSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Generate PDF")
-      .setDesc("마크다운 교안 생성 후 자동으로 PDF를 생성한다. (Pandoc 및 XeLaTeX 설치 필요)")
+      .setDesc("마크다운 교안 생성 후 자동으로 PDF를 생성한다. Pandoc 및 XeLaTeX가 필요하다.")
       .addToggle((toggle) => toggle
         .setValue(this.plugin.settings.generatePdf)
         .onChange(async (value) => {
           this.plugin.settings.generatePdf = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName("Pandoc path")
+      .setDesc("비워두면 PATH와 macOS 기본 설치 위치를 자동 탐색한다. 예: /opt/homebrew/bin/pandoc")
+      .addText((text) => text
+        .setPlaceholder("/opt/homebrew/bin/pandoc")
+        .setValue(this.plugin.settings.pandocPath)
+        .onChange(async (value) => {
+          this.plugin.settings.pandocPath = value.trim();
           await this.plugin.saveSettings();
         }));
 

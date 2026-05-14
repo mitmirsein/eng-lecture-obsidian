@@ -1,5 +1,6 @@
 import { Notice, Plugin, TFile, MarkdownView, FileSystemAdapter } from "obsidian";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
+import { existsSync } from "fs";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
@@ -15,6 +16,15 @@ function slugify(value: string): string {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function commandWorks(command: string, args: string[] = ["--version"]): boolean {
+  try {
+    execFileSync(command, args, { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export default class MosaicLecturePlugin extends Plugin {
@@ -297,14 +307,45 @@ ${errorMessage(error)}
     const adapter = this.app.vault.adapter as FileSystemAdapter;
     const mdPath = adapter.getFullPath(file.path);
     const pdfPath = mdPath.replace(/\.md$/, ".pdf");
+    const configuredPandoc = this.settings.pandocPath.trim();
+    const pandocCandidates = [
+      configuredPandoc,
+      "pandoc",
+      "/opt/homebrew/bin/pandoc",
+      "/usr/local/bin/pandoc",
+      "/usr/bin/pandoc",
+    ].filter(Boolean);
+    const pandoc = pandocCandidates.find((candidate) => {
+      if (candidate.includes("/")) {
+        return existsSync(candidate) && commandWorks(candidate);
+      }
+      return commandWorks(candidate);
+    });
+
+    if (!pandoc) {
+      const hint = configuredPandoc
+        ? `설정된 Pandoc 경로를 확인하세요: ${configuredPandoc}`
+        : "Pandoc을 설치하거나 Settings > Mosaic Eng Lecture > Pandoc path에 절대경로를 입력하세요.";
+      console.warn("Mosaic PDF skipped: pandoc executable not found.", { configuredPandoc });
+      new Notice(`Mosaic: PDF 생성 건너뜀 - ${hint}`);
+      return;
+    }
 
     new Notice(`Mosaic: PDF 변환 중... (${file.basename})`);
 
     try {
-      // engine.js와 동일한 pandoc 커맨드 사용
-      const cmd = `pandoc "${mdPath}" --pdf-engine=xelatex -V geometry:"a4paper,margin=3cm" -V linestretch=1.5 -V mainfont="Pretendard" -o "${pdfPath}"`;
-      
-      execSync(cmd);
+      execFileSync(pandoc, [
+        mdPath,
+        "--pdf-engine=xelatex",
+        "-V",
+        "geometry:a4paper,margin=3cm",
+        "-V",
+        "linestretch=1.5",
+        "-V",
+        "mainfont=Pretendard",
+        "-o",
+        pdfPath,
+      ]);
       new Notice(`Mosaic: PDF 생성 완료: ${file.basename}.pdf`);
     } catch (error) {
       console.error("Mosaic PDF Error:", error);
