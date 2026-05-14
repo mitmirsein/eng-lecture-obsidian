@@ -24,6 +24,56 @@ export default class MosaicLecturePlugin extends Plugin {
     this.addSettingTab(new MosaicSettingTab(this.app, this));
 
     this.addCommand({
+      id: "create-passage-note",
+      name: "Create New Passage Note",
+      callback: async () => {
+        const template = `---
+passage_id: "New_Passage_${Date.now()}"
+level: "${this.settings.defaultLevel}"
+difficulty: "중"
+exam_type: "MOCK"
+publisher: ""
+year: ${new Date().getFullYear()}
+semester: 1
+question_number: 20
+problem_type: "주장"
+target_grade: "${this.settings.defaultTargetGrade}"
+correct_answer: ""
+topic: ""
+---
+
+[지문을 입력하세요]
+
+[문항을 입력하세요]
+
+① 
+② 
+③ 
+④ 
+⑤ 
+
+ANSWER: 
+`;
+        const folder = this.app.vault.getAbstractFileByPath(this.settings.outputRoot);
+        const fileName = `New_Passage_${Date.now()}.md`;
+        const filePath = `${this.settings.outputRoot}/${fileName}`;
+        
+        try {
+          // 폴더가 없으면 생성
+          if (!folder) {
+            await this.app.vault.createFolder(this.settings.outputRoot);
+          }
+          const file = await this.app.vault.create(filePath, template);
+          const leaf = this.app.workspace.getLeaf(true);
+          await leaf.openFile(file);
+          new Notice(`Mosaic: 새 지문 노트가 생성되었습니다: ${fileName}`);
+        } catch (e) {
+          new Notice(`Mosaic: 노트 생성 실패 - ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    });
+
+    this.addCommand({
       id: "generate-lecture-asset",
       name: "Generate Lecture Asset",
       editorCallback: async (editor, view) => {
