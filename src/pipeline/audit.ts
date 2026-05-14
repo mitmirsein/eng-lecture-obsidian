@@ -84,7 +84,12 @@ export function runForensicAudit(
   };
   checkKorean("ella",  "theme_ko",         inst.ella?.theme_ko);
   checkKorean("ella",  "main_idea_ko",      inst.ella?.main_idea_ko);
-  checkKorean("sunny", "grammar_deep_dive", inst.sunny?.grammar_deep_dive);
+  // grammar_deep_dive는 영문 구문 인용이 정상적으로 포함되므로 한글 비율 대신 길이로 체크
+  const sunnyText = inst.sunny?.grammar_deep_dive ?? "";
+  if (sunnyText.length < 100) {
+    p3score -= 4;
+    p3fails.push(`sunny.grammar_deep_dive 길이 ${sunnyText.length}자 < 100자`);
+  }
 
   p3score = Math.max(0, p3score);
   score  -= (20 - p3score);
@@ -121,7 +126,6 @@ export function runForensicAudit(
 
   // ── 항목 5: 원문 결함 주석 (10점) ───────────────────────────────────────
   const rawAnomalies  = (triage?.anomalies ?? []).filter(a => a.type === "원문_결함");
-  const sunnyText     = inst.sunny?.grammar_deep_dive ?? "";
   const annotated     = rawAnomalies.length === 0 ||
     rawAnomalies.every(a => sunnyText.includes(a.expression.slice(0, 10)));
 
