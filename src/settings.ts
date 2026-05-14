@@ -3,16 +3,49 @@ import type MosaicLecturePlugin from "./main";
 import type { MosaicSettings } from "./pipeline/types";
 
 export const DEFAULT_SETTINGS: MosaicSettings = {
-  provider: "openai-compatible",
+  provider: "openai",
   endpoint: "https://api.openai.com/v1/chat/completions",
   apiKey: "",
-  model: "gpt-4.1",
+  model: "gpt-4o",
   outputRoot: "Mosaic/outputs",
   defaultLevel: "H1",
   defaultTargetGrade: "고등",
 };
 
 export const API_KEY_SECRET_ID = "mosaic-eng-lecture-api-key";
+
+const PROVIDER_CONFIGS: Record<string, { name: string; endpoint: string; models: string[] }> = {
+  openai: {
+    name: "OpenAI",
+    endpoint: "https://api.openai.com/v1/chat/completions",
+    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
+  },
+  anthropic: {
+    name: "Anthropic (via OpenRouter)",
+    endpoint: "https://openrouter.ai/api/v1/chat/completions",
+    models: ["anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus", "anthropic/claude-3-haiku"],
+  },
+  google: {
+    name: "Google Gemini (via OpenRouter)",
+    endpoint: "https://openrouter.ai/api/v1/chat/completions",
+    models: ["google/gemini-pro-1.5", "google/gemini-flash-1.5", "google/gemini-pro-1.0"],
+  },
+  openrouter: {
+    name: "OpenRouter (All-in-one)",
+    endpoint: "https://openrouter.ai/api/v1/chat/completions",
+    models: ["anthropic/claude-3.5-sonnet", "google/gemini-pro-1.5", "meta-llama/llama-3.1-70b-instruct"],
+  },
+  groq: {
+    name: "Groq (Fast)",
+    endpoint: "https://api.groq.com/openai/v1/chat/completions",
+    models: ["llama-3.1-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
+  },
+  custom: {
+    name: "Custom (OpenAI-compatible)",
+    endpoint: "",
+    models: [],
+  },
+};
 
 function section(containerEl: HTMLElement, title: string, desc: string): void {
   const el = containerEl.createDiv({ cls: "mosaic-settings-section" });
@@ -51,27 +84,39 @@ export class MosaicSettingTab extends PluginSettingTab {
     section(
       containerEl,
       "Connection",
-      "OpenAI-compatible chat completions endpoint를 사용한다. API key는 Obsidian SecretStorage에 저장되며 data.json에는 남기지 않는다.",
+      "API 제공자를 선택하고 인증 정보를 입력한다. API key는 Obsidian SecretStorage에 안전하게 저장된다.",
     );
 
     new Setting(containerEl)
-      .setName("API endpoint")
-      .setDesc("예: https://api.openai.com/v1/chat/completions")
-      .addText((text) => text
-        .setPlaceholder(DEFAULT_SETTINGS.endpoint)
-        .setValue(this.plugin.settings.endpoint)
-        .onChange(async (value) => {
-          this.plugin.settings.endpoint = value.trim() || DEFAULT_SETTINGS.endpoint;
-          await this.plugin.saveSettings();
-        }));
+      .setName("API Provider")
+      .setDesc("사용할 LLM 서비스 제공자를 선택한다.")
+      .addDropdown((dropdown) => {
+        Object.keys(PROVIDER_CONFIGS).forEach((id) => {
+          dropdown.addOption(id, PROVIDER_CONFIGS[id].name);
+        });
+        dropdown
+          .setValue(this.plugin.settings.provider)
+          .onChange(async (value) => {
+            this.plugin.settings.provider = value;
+            const config = PROVIDER_CONFIGS[value];
+            if (config.endpoint) {
+              this.plugin.settings.endpoint = config.endpoint;
+            }
+            if (config.models.length > 0) {
+              this.plugin.settings.model = config.models[0];
+            }
+            await this.plugin.saveSettings();
+            this.display(); // UI 새로고침
+          });
+      });
 
     new Setting(containerEl)
-      .setName("API key")
-      .setDesc("값을 입력하면 즉시 SecretStorage에 저장된다. 보안상 저장된 값은 다시 표시하지 않는다.")
+      .setName("API Key")
+      .setDesc("인증을 위한 API Key를 입력한다. (보안상 저장 후에는 표시되지 않음)")
       .addText((text) => {
         text.inputEl.type = "password";
         text
-          .setPlaceholder(this.plugin.settings.apiKey ? "API key configured" : "sk-...")
+          .setPlaceholder(this.plugin.settings.apiKey ? "API key configured" : "Enter your key...")
           .setValue("")
           .onChange(async (value) => {
             const apiKey = value.trim();
@@ -89,16 +134,49 @@ export class MosaicSettingTab extends PluginSettingTab {
           });
       });
 
+    const isCustom = this.plugin.settings.provider === "custom";
+    
     new Setting(containerEl)
-      .setName("Model")
-      .setDesc("강의 자산 생성에 사용할 모델명. endpoint가 OpenAI-compatible이면 해당 provider의 모델명을 그대로 입력한다.")
-      .addText((text) => text
-        .setPlaceholder(DEFAULT_SETTINGS.model)
+      .setName("API Endpoint")
+      .setDesc(isCustom ? "OpenAI 호환 API 엔드포인트를 직접 입력한다." : "현재 제공자의 기본 엔드포인트가 사용된다.")
+      .addText((text) => {
+        text
+          .setPlaceholder("https://api.example.com/v1/chat/completions")
+          .setValue(this.plugin.settings.endpoint)
+          .setDisabled(!isCustom)
+          .onChange(async (value) => {
+            this.plugin.settings.endpoint = value.trim();
+            await this.plugin.saveSettings();
+          });
+      });
+
+    const currentModels = PROVIDER_CONFIGS[this.plugin.settings.provider]?.models || [];
+    
+    const modelSetting = new Setting(containerEl)
+      .setName("Model Selection")
+      .setDesc("사용할 LLM 모델을 선택하거나 직접 입력한다.");
+
+    if (currentModels.length > 0) {
+      modelSetting.addDropdown((dropdown) => {
+        currentModels.forEach((m) => dropdown.addOption(m, m));
+        dropdown
+          .setValue(this.plugin.settings.model)
+          .onChange(async (value) => {
+            this.plugin.settings.model = value;
+            await this.plugin.saveSettings();
+          });
+      });
+    }
+
+    modelSetting.addText((text) => {
+      text
+        .setPlaceholder("Directly enter model name...")
         .setValue(this.plugin.settings.model)
         .onChange(async (value) => {
-          this.plugin.settings.model = value.trim() || DEFAULT_SETTINGS.model;
+          this.plugin.settings.model = value.trim();
           await this.plugin.saveSettings();
-        }));
+        });
+    });
 
     section(
       containerEl,
@@ -120,7 +198,7 @@ export class MosaicSettingTab extends PluginSettingTab {
     section(
       containerEl,
       "Passage Defaults",
-      "현재 MVP는 노트 본문을 우선 처리한다. 세부 기출 메타데이터 UI는 다음 단계에서 붙이고, 지금은 기본 학년값을 생성 프롬프트에 주입한다.",
+      "기본 학년과 레벨을 설정한다. 프롬프트 생성 시 사용된다.",
     );
 
     new Setting(containerEl)

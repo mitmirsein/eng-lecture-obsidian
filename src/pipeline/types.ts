@@ -1,5 +1,5 @@
 export interface MosaicSettings {
-  provider: "openai-compatible";
+  provider: string;
   endpoint: string;
   apiKey: string;
   model: string;
