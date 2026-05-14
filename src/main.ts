@@ -163,6 +163,17 @@ ANSWER:
     try {
       const result = await generateLectureAssets(this.settings, input);
 
+      // 메타데이터가 있으면 원본 노트의 YAML 업데이트 (자동 분류 및 파싱)
+      if (result.metadata) {
+        await this.app.fileManager.processFrontMatter(file, (fm) => {
+          if (result.metadata?.passage_id && !fm["passage_id"]) fm["passage_id"] = result.metadata.passage_id;
+          if (result.metadata?.level && (!fm["level"] || fm["level"] === "H1")) fm["level"] = result.metadata.level;
+          if (result.metadata?.problem_type) fm["problem_type"] = result.metadata.problem_type;
+          if (result.metadata?.topic) fm["topic"] = result.metadata.topic;
+          if (result.metadata?.correct_answer) fm["correct_answer"] = result.metadata.correct_answer;
+        });
+      }
+
       await this.upsertText(`${folder}/[MOSAIC]_${slug}.md`, result.masterMarkdown.trim() + "\n");
       
       const reportMd = `---

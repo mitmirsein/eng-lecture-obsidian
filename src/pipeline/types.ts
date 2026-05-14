@@ -18,6 +18,13 @@ export interface GenerationInput {
 
 export interface GenerationOutput {
   masterMarkdown: string;
+  metadata?: {
+    passage_id?: string;
+    level?: string;
+    problem_type?: string;
+    topic?: string;
+    correct_answer?: string;
+  };
   raw: unknown;
 }
 
