@@ -179,14 +179,17 @@ async function runKMaster(
 export async function generateLectureAssets(
   settings: MosaicSettings,
   input: GenerationInput,
+  onProgress?: () => void,
 ): Promise<GenerationOutput> {
   if (!settings.apiKey.trim()) throw new Error("API key is not configured.");
 
   // Call 1: Triage
   const triage = await runTriage(settings, input);
+  onProgress?.();
 
   // Call 2: Dense Analysis
   const bundle = await runDenseAnalysis(settings, input, triage);
+  onProgress?.();
 
   // Call 3: K-Master (or fallback to single-call)
   if (bundle) {
