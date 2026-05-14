@@ -273,7 +273,11 @@ export default class MosaicLecturePlugin extends Plugin {
     for (const part of parts) {
       current = current ? `${current}/${part}` : part;
       if (!this.app.vault.getAbstractFileByPath(current)) {
-        await this.app.vault.createFolder(current);
+        try {
+          await this.app.vault.createFolder(current);
+        } catch {
+          // 이미 존재하면 무시
+        }
       }
     }
   }
