@@ -20,25 +20,25 @@ const PROVIDER_CONFIGS: Record<string, { name: string; endpoint: string; models:
     endpoint: "https://api.openai.com/v1/chat/completions",
     models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
   },
-  anthropic: {
-    name: "Anthropic (via OpenRouter)",
+  claude: {
+    name: "Claude (via OpenRouter)",
     endpoint: "https://openrouter.ai/api/v1/chat/completions",
     models: ["anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus", "anthropic/claude-3-haiku"],
   },
-  google: {
-    name: "Google Gemini (via OpenRouter)",
-    endpoint: "https://openrouter.ai/api/v1/chat/completions",
-    models: ["google/gemini-pro-1.5", "google/gemini-flash-1.5", "google/gemini-pro-1.0"],
+  gemini: {
+    name: "Gemini",
+    endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    models: ["gemini-1.5-pro", "gemini-1.5-flash"],
+  },
+  grok: {
+    name: "Grok (xAI)",
+    endpoint: "https://api.x.ai/v1/chat/completions",
+    models: ["grok-beta", "grok-2"],
   },
   openrouter: {
-    name: "OpenRouter (All-in-one)",
+    name: "OpenRouter",
     endpoint: "https://openrouter.ai/api/v1/chat/completions",
     models: ["anthropic/claude-3.5-sonnet", "google/gemini-pro-1.5", "meta-llama/llama-3.1-70b-instruct"],
-  },
-  groq: {
-    name: "Groq (Fast)",
-    endpoint: "https://api.groq.com/openai/v1/chat/completions",
-    models: ["llama-3.1-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
   },
   custom: {
     name: "Custom (OpenAI-compatible)",
