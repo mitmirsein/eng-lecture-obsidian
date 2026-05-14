@@ -138,17 +138,25 @@ ANSWER:
   }
 
   async generateForSource(file: TFile, sourceText: string) {
-    const slug = slugify(file.basename);
+    const cache = this.app.metadataCache.getFileCache(file);
+    const frontmatter = cache?.frontmatter || {};
+    
+    // YAML 설정이 있으면 우선, 없으면 전역 설정 사용
+    const level = frontmatter.level || frontmatter.Level || this.settings.defaultLevel;
+    const targetGrade = frontmatter.target_grade || frontmatter.Target_Grade || this.settings.defaultTargetGrade;
+    const passageId = frontmatter.passage_id || slugify(file.basename);
+    
+    const slug = passageId;
     const folder = `${this.settings.outputRoot}/${slug}`;
     const input: GenerationInput = {
       slug,
       sourcePath: file.path,
       sourceText,
-      level: this.settings.defaultLevel,
-      targetGrade: this.settings.defaultTargetGrade,
+      level,
+      targetGrade,
     };
 
-    new Notice(`Mosaic: ${slug} 생성 시작`);
+    new Notice(`Mosaic: ${slug} 생성 시작 (Level: ${level}, Grade: ${targetGrade})`);
     await this.ensureFolder(folder);
     await this.upsertText(`${folder}/source.md`, sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`);
 
