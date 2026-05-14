@@ -34,9 +34,10 @@ export default class MosaicLecturePlugin extends Plugin {
       changed = true;
     }
 
-    // Gemini 엔드포인트 마이그레이션 (v1beta -> v1)
-    if (this.settings.provider === "gemini" && this.settings.endpoint.includes("v1beta")) {
-      this.settings.endpoint = "https://generativelanguage.googleapis.com/v1/openai/chat/completions";
+    // Gemini 엔드포인트 마이그레이션 (v1beta/openai 표준으로 일원화)
+    if (this.settings.provider === "gemini" && (!this.settings.endpoint.includes("v1beta") || !this.settings.endpoint.includes("openai"))) {
+      this.settings.endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+      this.settings.model = "gemini-3.1-flash-lite"; // 2026 GA 모델 권장
       changed = true;
     }
 

@@ -27,7 +27,7 @@ const PROVIDER_CONFIGS: Record<string, { name: string; endpoint: string; models:
   },
   gemini: {
     name: "Gemini",
-    endpoint: "https://generativelanguage.googleapis.com/v1/openai/chat/completions",
+    endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
     models: ["gemini-3.1-pro-preview", "gemini-3.1-flash-lite", "gemini-3-flash-preview"],
   },
 };

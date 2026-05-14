@@ -62,18 +62,23 @@ export async function generateLectureAssets(
         max_tokens: 8192,
       };
 
+  console.log(`Mosaic [API Call]: ${settings.provider} -> ${settings.endpoint} (Model: ${settings.model})`);
+
   const response = await requestUrl({
     url: settings.endpoint,
     method: "POST",
     headers,
     body: JSON.stringify(body),
+    throw: false, // 에러 발생 시 수동 처리
   });
 
   if (response.status !== 200) {
+    console.error("Mosaic [API Error]:", response.status, response.text);
     throw new Error(`LLM request failed: HTTP ${response.status} - ${response.text}`);
   }
 
   const data = response.json;
+  console.log("Mosaic [API Response]: Received data successfully");
   let content: string | undefined;
 
   if (isAnthropic) {
