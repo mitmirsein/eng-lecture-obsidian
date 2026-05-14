@@ -57,7 +57,12 @@ export class MosaicSettingTab extends PluginSettingTab {
     containerEl.addClass("mosaic-settings");
 
     const header = containerEl.createDiv({ cls: "mosaic-settings-header" });
-    header.createEl("h2", { text: "Mosaic Eng Lecture" });
+    const titleRow = header.createDiv({ cls: "mosaic-settings-title-row" });
+    titleRow.createEl("h2", { text: "Mosaic Eng Lecture" });
+    titleRow.createEl("span", {
+      text: `v${this.plugin.manifest.version}`,
+      cls: "mosaic-settings-version",
+    });
     header.createEl("p", {
       text: "현재 노트나 선택 영역을 한국어 통합 강의 자산(MOSAIC)으로 생성한다.",
       cls: "mosaic-settings-description",

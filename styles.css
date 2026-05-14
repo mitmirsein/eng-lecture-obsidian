@@ -17,12 +17,27 @@
   overflow: hidden;
 }
 
+.mosaic-settings-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
 .mosaic-settings-header h2 {
   margin: 0 0 10px 0;
   color: white;
   font-weight: 800;
   font-size: 2em;
   letter-spacing: -0.02em;
+}
+
+.mosaic-settings-version {
+  font-size: 0.75em;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
 }
 
 .mosaic-settings-header .mosaic-settings-description {
