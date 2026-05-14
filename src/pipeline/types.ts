@@ -18,7 +18,6 @@ export interface GenerationInput {
 
 export interface GenerationOutput {
   masterMarkdown: string;
-  teacherMarkdown: string;
   raw: unknown;
 }
 

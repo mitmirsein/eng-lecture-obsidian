@@ -15,16 +15,13 @@ export function buildGenerationPrompt(input: GenerationInput): string {
 반드시 다음 JSON 형식만 반환한다.
 
 {
-  "masterMarkdown": "학생용 마크다운 전문",
-  "teacherMarkdown": "강사용 마크다운 전문"
+  "masterMarkdown": "통합 강의 자산 마크다운 전문"
 }
 
-[MASTER]에는 학생에게 제공할 개념, 논리 구조, 핵심 구문, 어휘, 문제 접근 전략을 담는다.
-[TEACHER]에는 강사용 판서 구조, 오답 유도 방식, 문장 간 응집성, 수업 질문, 확장 활동을 담는다.
+[masterMarkdown]에는 학생과 강사 모두에게 유용한 지문의 논리 구조, 핵심 구문, 어휘, 문제 접근 전략, 그리고 정답과 해설, 교수용 팁을 모두 포함한 통합 분석 자료를 담는다.
 
 원문:
 
 ${input.sourceText}
 `;
 }
-

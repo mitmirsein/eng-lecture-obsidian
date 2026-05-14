@@ -52,13 +52,12 @@ export async function generateLectureAssets(
   }
 
   const parsed = extractJson(content) as Partial<GenerationOutput>;
-  if (typeof parsed.masterMarkdown !== "string" || typeof parsed.teacherMarkdown !== "string") {
-    throw new Error("LLM JSON must include masterMarkdown and teacherMarkdown.");
+  if (typeof parsed.masterMarkdown !== "string") {
+    throw new Error("LLM JSON must include masterMarkdown.");
   }
 
   return {
     masterMarkdown: parsed.masterMarkdown,
-    teacherMarkdown: parsed.teacherMarkdown,
     raw: data,
   };
 }

@@ -105,8 +105,7 @@ export default class MosaicLecturePlugin extends Plugin {
     try {
       const result = await generateLectureAssets(this.settings, input);
 
-      await this.upsertText(`${folder}/[MASTER]_${slug}.md`, result.masterMarkdown.trim() + "\n");
-      await this.upsertText(`${folder}/[TEACHER]_${slug}.md`, result.teacherMarkdown.trim() + "\n");
+      await this.upsertText(`${folder}/[MOSAIC]_${slug}.md`, result.masterMarkdown.trim() + "\n");
       
       const reportMd = `---
 type: mosaic-report
@@ -121,9 +120,8 @@ date: ${new Date().toLocaleString()}
 - **Model**: \`${this.settings.model}\`
 - **Generated At**: ${new Date().toLocaleString()}
 
-> [!TIP]
-> - **[MASTER]**: 학생용 배포를 위한 핵심 강의 자산입니다.
-> - **[TEACHER]**: 정답, 해설, 그리고 교수용 팁이 포함된 확장 버전입니다.
+> [!INFO]
+> - **[MOSAIC]**: 학생 및 강사용 통합 강의 자산이 [[${folder}/[MOSAIC]_${slug}.md|이곳]]에 생성되었습니다.
 `;
       await this.upsertText(`${folder}/run-report.md`, reportMd);
 
