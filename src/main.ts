@@ -22,11 +22,30 @@ export default class MosaicLecturePlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     
+    let changed = false;
     // 이전 설정 마이그레이션 (Mosaic/outputs -> Mosaic_Eng/Outputs)
-    if (this.settings.outputRoot === "Mosaic/outputs" || this.settings.outputRoot === "Mosaic_Eng") {
+    if (this.settings.outputRoot === "Mosaic/outputs" || this.settings.outputRoot === "Mosaic" || this.settings.outputRoot === "Mosaic_Eng") {
       this.settings.outputRoot = "Mosaic_Eng/Outputs";
-      await this.saveSettings();
+      changed = true;
     }
+
+    // Gemini 엔드포인트 마이그레이션 (v1beta -> v1)
+    if (this.settings.provider === "gemini" && this.settings.endpoint.includes("v1beta")) {
+      this.settings.endpoint = "https://generativelanguage.googleapis.com/v1/openai/chat/completions";
+      changed = true;
+    }
+
+    if (changed) {
+      await this.saveSettings();
+      console.log("Mosaic: Settings migrated and saved.");
+    }
+
+    console.log("Mosaic Plugin Loaded", {
+      provider: this.settings.provider,
+      endpoint: this.settings.endpoint,
+      model: this.settings.model,
+      outputRoot: this.settings.outputRoot
+    });
 
     await this.ensureFolder(this.settings.outputRoot);
     this.addSettingTab(new MosaicSettingTab(this.app, this));
