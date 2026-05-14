@@ -32,7 +32,7 @@ title: "지문ID 포렌식 교안"
 # 📖 **지문ID**
 > **Mosaic Academy** 영어과 | **레벨:** Level | **대상:** Grade
 
-\noindent\rule{4cm}{0.4pt}
+---
 
 # 📝 **BLOCK A — 풀기 전 (먼저 풀어보세요)**
 ### **[지문]**
@@ -42,7 +42,7 @@ title: "지문ID 포렌식 교안"
 ### **[선지]**
 (파싱된 1-5번 선지)
 
-\noindent\rule{4cm}{0.4pt}
+---
 
 # 🔬 **BLOCK B — 포렌식 해부**
 **🎯 정답: 정답번호**

@@ -30,8 +30,7 @@ title: "\uC9C0\uBB38ID \uD3EC\uB80C\uC2DD \uAD50\uC548"
 # \u{1F4D6} **\uC9C0\uBB38ID**
 > **Mosaic Academy** \uC601\uC5B4\uACFC | **\uB808\uBCA8:** Level | **\uB300\uC0C1:** Grade
 
-
-oindent\rule{4cm}{0.4pt}
+---
 
 # \u{1F4DD} **BLOCK A \u2014 \uD480\uAE30 \uC804 (\uBA3C\uC800 \uD480\uC5B4\uBCF4\uC138\uC694)**
 ### **[\uC9C0\uBB38]**
@@ -41,8 +40,7 @@ oindent\rule{4cm}{0.4pt}
 ### **[\uC120\uC9C0]**
 (\uD30C\uC2F1\uB41C 1-5\uBC88 \uC120\uC9C0)
 
-
-oindent\rule{4cm}{0.4pt}
+---
 
 # \u{1F52C} **BLOCK B \u2014 \uD3EC\uB80C\uC2DD \uD574\uBD80**
 **\u{1F3AF} \uC815\uB2F5: \uC815\uB2F5\uBC88\uD638**
