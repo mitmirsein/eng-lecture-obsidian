@@ -48,6 +48,7 @@ export default class MosaicLecturePlugin extends Plugin {
     });
 
     await this.ensureFolder(this.settings.outputRoot);
+    await this.ensureFolder("Mosaic_Eng/Inbox");
     this.addSettingTab(new MosaicSettingTab(this.app, this));
 
     // 사이드바 리본 아이콘 추가
@@ -109,6 +110,24 @@ export default class MosaicLecturePlugin extends Plugin {
           await this.generateForSource(file, sourceText);
         } catch (error) {
           new Notice(`Mosaic: 생성 실패 - ${errorMessage(error)}`);
+        }
+      },
+    });
+
+    this.addCommand({
+      id: "create-new-draft",
+      name: "Mosaic: Create New Draft",
+      callback: async () => {
+        const inboxPath = "Mosaic_Eng/Inbox";
+        await this.ensureFolder(inboxPath);
+        const fileName = `draft_${new Date().toISOString().slice(0, 10)}_${Date.now().toString().slice(-4)}.md`;
+        const filePath = `${inboxPath}/${fileName}`;
+        const template = "---\nlevel: H1\ntarget_grade: 고등\npassage_id: \n---\n\n 여기에 지문을 입력하세요.";
+        await this.upsertText(filePath, template);
+        const newFile = this.app.vault.getAbstractFileByPath(filePath);
+        if (newFile instanceof TFile) {
+          const leaf = this.app.workspace.getLeaf(true);
+          await leaf.openFile(newFile);
         }
       },
     });
