@@ -48,6 +48,10 @@ function dataUrlToBytes(dataUrl: string): Buffer {
   return Buffer.from(base64, "base64");
 }
 
+function texEscapePath(path: string): string {
+  return path.replace(/\\/g, "/").replace(/([#$%&_{}])/g, "\\$1");
+}
+
 function stripSingleMarkerEmphasis(text: string, marker: "*" | "_"): string {
   let output = "";
   let index = 0;
@@ -304,6 +308,28 @@ export default class MosaicLecturePlugin extends Plugin {
     return { regular, bold };
   }
 
+  ensureBundledPretendardHeader(fonts: { regular: string; bold: string }): string | undefined {
+    const header = this.getPluginFullPath("assets/fonts/pretendard/pretendard-fontspec.tex");
+    if (!header) {
+      return undefined;
+    }
+
+    const fontDir = `${dirname(fonts.regular).replace(/\\/g, "/")}/`;
+    const content = [
+      "\\setmainfont{Pretendard-Regular.otf}[",
+      `  Path={${texEscapePath(fontDir)}},`,
+      "  BoldFont={Pretendard-Bold.otf},",
+      "  ItalicFont={Pretendard-Regular.otf},",
+      "  BoldItalicFont={Pretendard-Bold.otf}",
+      "]",
+      "",
+    ].join("\n");
+
+    mkdirSync(dirname(header), { recursive: true });
+    writeFileSync(header, content, "utf8");
+    return header;
+  }
+
   async generateForSource(file: TFile, sourceText: string) {
     const cache = this.app.metadataCache.getFileCache(file);
     const frontmatter = cache?.frontmatter || {};
@@ -453,16 +479,12 @@ ${errorMessage(error)}
       const bundledFonts = useBundledPretendard ? this.ensureBundledPretendardFonts() : undefined;
 
       if (bundledFonts) {
-        args.push(
-          "-V",
-          `mainfont=${bundledFonts.regular}`,
-          "-V",
-          `mainfontoptions=BoldFont={${bundledFonts.bold}}`,
-          "-V",
-          `mainfontoptions=ItalicFont={${bundledFonts.regular}}`,
-          "-V",
-          `mainfontoptions=BoldItalicFont={${bundledFonts.bold}}`,
-        );
+        const header = this.ensureBundledPretendardHeader(bundledFonts);
+        if (header) {
+          args.push("--include-in-header", header);
+        } else {
+          args.push("-V", "mainfont=Apple SD Gothic Neo");
+        }
       } else {
         args.push("-V", `mainfont=${pdfFont}`);
       }
