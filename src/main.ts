@@ -107,22 +107,47 @@ export default class MosaicLecturePlugin extends Plugin {
 
       await this.upsertText(`${folder}/[MASTER]_${slug}.md`, result.masterMarkdown.trim() + "\n");
       await this.upsertText(`${folder}/[TEACHER]_${slug}.md`, result.teacherMarkdown.trim() + "\n");
-      await this.upsertText(`${folder}/run-log.json`, JSON.stringify({
-        status: "success",
-        sourcePath: file.path,
-        model: this.settings.model,
-        generatedAt: new Date().toISOString(),
-      }, null, 2) + "\n");
+      
+      const reportMd = `---
+type: mosaic-report
+status: success
+model: ${this.settings.model}
+date: ${new Date().toLocaleString()}
+---
+# Mosaic Run Report - ${slug}
+
+- **Status**: ✅ Success
+- **Source**: [[${file.name}]]
+- **Model**: \`${this.settings.model}\`
+- **Generated At**: ${new Date().toLocaleString()}
+
+> [!TIP]
+> - **[MASTER]**: 학생용 배포를 위한 핵심 강의 자산입니다.
+> - **[TEACHER]**: 정답, 해설, 그리고 교수용 팁이 포함된 확장 버전입니다.
+`;
+      await this.upsertText(`${folder}/run-report.md`, reportMd);
 
       new Notice(`Mosaic: ${slug} 생성 완료`);
     } catch (error) {
-      await this.upsertText(`${folder}/run-log.json`, JSON.stringify({
-        status: "failed",
-        sourcePath: file.path,
-        model: this.settings.model,
-        failedAt: new Date().toISOString(),
-        error: errorMessage(error),
-      }, null, 2) + "\n");
+      const errorMd = `---
+type: mosaic-report
+status: failed
+model: ${this.settings.model}
+date: ${new Date().toLocaleString()}
+---
+# Mosaic Run Report - ${slug}
+
+- **Status**: ❌ Failed
+- **Source**: [[${file.name}]]
+- **Model**: \`${this.settings.model}\`
+- **Failed At**: ${new Date().toLocaleString()}
+
+## Error Message
+\`\`\`
+${errorMessage(error)}
+\`\`\`
+`;
+      await this.upsertText(`${folder}/run-report.md`, errorMd);
       throw error;
     }
   }
