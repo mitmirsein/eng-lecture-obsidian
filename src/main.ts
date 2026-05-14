@@ -1,7 +1,8 @@
 import { Notice, Plugin, TFile, MarkdownView, FileSystemAdapter } from "obsidian";
 import { execFileSync } from "child_process";
-import { dirname } from "path";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { homedir } from "os";
+import { basename, dirname } from "path";
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
@@ -51,6 +52,15 @@ function dataUrlToBytes(dataUrl: string): Buffer {
 function texEscapePath(path: string): string {
   return path.replace(/\\/g, "/").replace(/([#$%&_{}])/g, "\\$1");
 }
+
+const FONT_CACHE_DIR = "/private/tmp/mosaic-pretendard";
+
+const EMOJI_FONT_CANDIDATES = [
+  `${homedir()}/Library/Fonts/NotoColorEmoji-Regular.ttf`,
+  "/Library/Fonts/NotoColorEmoji-Regular.ttf",
+  `${homedir()}/Library/Fonts/NotoEmoji-Regular.ttf`,
+  "/Library/Fonts/NotoEmoji-Regular.ttf",
+];
 
 function stripSingleMarkerEmphasis(text: string, marker: "*" | "_"): string {
   let output = "";
@@ -286,36 +296,45 @@ export default class MosaicLecturePlugin extends Plugin {
     return this.app.vault.adapter.getFullPath(`${pluginDir}/${relativePath}`);
   }
 
-  ensureBundledPretendardFonts(): { regular: string; bold: string } | undefined {
-    const regular = this.getPluginFullPath("assets/fonts/pretendard/Pretendard-Regular.otf");
-    const bold = this.getPluginFullPath("assets/fonts/pretendard/Pretendard-Bold.otf");
-    if (!regular || !bold) {
+  ensureBundledPretendardFonts(): { regular: string; bold: string; emoji?: string } | undefined {
+    const regular = `${FONT_CACHE_DIR}/Pretendard-Regular.otf`;
+    const bold = `${FONT_CACHE_DIR}/Pretendard-Bold.otf`;
+
+    try {
+      mkdirSync(FONT_CACHE_DIR, { recursive: true });
+      if (!existsSync(regular)) {
+        writeFileSync(regular, dataUrlToBytes(pretendardRegularDataUrl));
+      }
+      if (!existsSync(bold)) {
+        writeFileSync(bold, dataUrlToBytes(pretendardBoldDataUrl));
+      }
+    } catch {
       return undefined;
     }
 
-    const fonts = [
-      { path: regular, dataUrl: pretendardRegularDataUrl },
-      { path: bold, dataUrl: pretendardBoldDataUrl },
-    ];
-
-    for (const font of fonts) {
-      if (!existsSync(font.path)) {
-        mkdirSync(dirname(font.path), { recursive: true });
-        writeFileSync(font.path, dataUrlToBytes(font.dataUrl));
+    let emoji: string | undefined;
+    for (const candidate of EMOJI_FONT_CANDIDATES) {
+      if (existsSync(candidate)) {
+        const dest = `${FONT_CACHE_DIR}/${basename(candidate)}`;
+        try {
+          if (!existsSync(dest)) copyFileSync(candidate, dest);
+          emoji = dest;
+        } catch { /* ignore */ }
+        break;
       }
     }
 
-    return { regular, bold };
+    return { regular, bold, emoji };
   }
 
-  ensureBundledPretendardHeader(fonts: { regular: string; bold: string }): string | undefined {
+  ensureBundledPretendardHeader(fonts: { regular: string; bold: string; emoji?: string }): string | undefined {
     const header = this.getPluginFullPath("assets/fonts/pretendard/pretendard-fontspec.tex");
     if (!header) {
       return undefined;
     }
 
     const fontDir = `${dirname(fonts.regular).replace(/\\/g, "/")}/`;
-    const content = [
+    const lines = [
       "\\usepackage{fontspec}",
       "\\setmainfont[",
       `  Path={${texEscapePath(fontDir)}},`,
@@ -324,11 +343,25 @@ export default class MosaicLecturePlugin extends Plugin {
       "  ItalicFont={Pretendard-Regular.otf},",
       "  BoldItalicFont={Pretendard-Bold.otf}",
       "]{Pretendard}",
-      "",
-    ].join("\n");
+    ];
 
+    if (fonts.emoji) {
+      lines.push(
+        "\\usepackage{ucharclasses}",
+        "\\newfontfamily\\EmojiFont[",
+        `  Path={${texEscapePath(fontDir)}},`,
+        `  UprightFont={${basename(fonts.emoji)}}`,
+        "]{EmojiFont}",
+        "\\setTransitionsFor{Emoticons}{\\EmojiFont}{\\normalfont}",
+        "\\setTransitionsFor{MiscellaneousSymbolsAndPictographs}{\\EmojiFont}{\\normalfont}",
+        "\\setTransitionsFor{TransportAndMapSymbols}{\\EmojiFont}{\\normalfont}",
+        "\\setTransitionsFor{SupplementalSymbolsAndPictographs}{\\EmojiFont}{\\normalfont}",
+      );
+    }
+
+    lines.push("");
     mkdirSync(dirname(header), { recursive: true });
-    writeFileSync(header, content, "utf8");
+    writeFileSync(header, lines.join("\n"), "utf8");
     return header;
   }
 
