@@ -182,15 +182,20 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
       ],
       "logic_route": "논리 경로 (예: 도입 → 문제제기 → 근거 → 결론)",
       "cohesion_bridges": [
-        {"sentence_pair": "S1-S2", "bridge_type": "연결어/지시어/재진술/관사/인과(Q&A)/기타", "bridge_word": "핵심 연결 단어", "explanation": "응집 설명 (~한다체)"}
+        {"sentence_pair": "S1-S2", "bridge_type": "연결어/지시어/재진술/관사/인과(Q&A)/기타", "bridge_word": "핵심 연결 단어", "explanation": "응집 설명 (~한다체)"},
+        {"sentence_pair": "S2-S3", "bridge_type": "...", "bridge_word": "...", "explanation": "..."},
+        {"sentence_pair": "S3-S4", "bridge_type": "...", "bridge_word": "...", "explanation": "..."}
       ]
     },
     "lex": {
       "vocabulary_entries": [
-        {"word": "원형", "pos": "n./v./adj./adv.", "definition": "영영 정의", "korean": "한국어 뜻"}
+        {"word": "원형1", "pos": "n.", "definition": "영영 정의", "korean": "한국어 뜻"},
+        {"word": "원형2", "pos": "v.", "definition": "영영 정의", "korean": "한국어 뜻"},
+        {"word": "원형3", "pos": "adj.", "definition": "영영 정의", "korean": "한국어 뜻"}
       ],
       "paraphrase_layers": [
-        {"keyword": "핵심어", "synonyms": ["동의어1"], "contextual_equivalents": ["문맥 대체어"], "antonym_negation": "반의어 부정 표현"}
+        {"keyword": "핵심어1", "synonyms": ["동의어1", "동의어2"], "contextual_equivalents": ["문맥 대체어1"], "antonym_negation": "반의어 부정"},
+        {"keyword": "핵심어2", "synonyms": ["동의어1"], "contextual_equivalents": ["문맥 대체어1", "문맥 대체어2"], "antonym_negation": "반의어 부정"}
       ]
     },
     "villanelle": {
@@ -295,7 +300,7 @@ ${isMaskingTarget ? "(bundle.instructors.luna.block_a_masked 사용)" : "(bundle
 - **심층 요지:** ella.main_idea_ko 값 그대로
 ### **🧩 논리 구조 및 응집성**
 | 문장 쌍 | 연결 방식 | 핵심 단어 | 논리적 결속 원리 |
-(miranda.cohesion_bridges 전체 → 표. 행 누락 금지)
+(miranda.cohesion_bridges 전체 → 표. 최소 3행 필수 — 행 누락 = 오류)
 > **논리 경로:** (miranda.logic_route)
 
 ---
@@ -316,7 +321,7 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 (lex.vocabulary_entries 전체 → **word** (pos): definition — korean 형식. 누락 금지)
 ### **🔄 3단계 재진술 DB**
 | 키워드 | 동의어 | 문맥적 대체어 | 반의어 부정 |
-(lex.paraphrase_layers 전체 → 표. 행 누락 금지)
+(lex.paraphrase_layers 전체 → 표. 최소 2행 필수. synonyms·contextual_equivalents 배열 값은 " / " 구분으로 셀 안에 나열 — JSON 대괄호 그대로 출력 금지. 행 누락 = 오류)
 
 ---
 
@@ -331,7 +336,7 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 ## 07. K마스터: 변형 문항
 ### **🕵️ 출제 전략**
 (kmaster_meta.design_strategy — 원본 유형 [${triage?.problem_type ?? ""}] 중복 금지)
-(변형 문항 1-2개 설계 — 선지는 수능 실제 형식, ①②③④⑤ 사용)
+(변형 문항 1-2개 설계 — 선지는 수능 실제 형식, ①②③④⑤ 사용. 문장삽입 유형은 반드시 ①~⑤ 위치 선지 5개 포함 — 선지 없으면 오류)
 
 ---
 
@@ -351,6 +356,8 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 2. 이탤릭(*text*, _text_) 금지. 굵게(**text**)만
 3. 모든 섹션·모든 행 빠짐없이 렌더링 (누락 = 오류)
 4. 변형 문항은 원본 유형과 반드시 다른 유형으로 설계
+5. cohesion_bridges 최소 3행, paraphrase_layers 최소 2행 — 미달 시 임의 행 보완 후 출력
+6. 문장삽입 변형 문항: ①~⑤ 위치 선지 5개 필수 (누락 = 오류)
 
 반드시 위 JSON만 반환하라.`;
 }
