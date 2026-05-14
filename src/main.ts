@@ -6,6 +6,7 @@ import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
+import { ProgressModal } from "./ui/ProgressModal";
 import pretendardRegularDataUrl from "../assets/fonts/pretendard/Pretendard-Regular.otf";
 import pretendardBoldDataUrl from "../assets/fonts/pretendard/Pretendard-Bold.otf";
 
@@ -388,12 +389,14 @@ export default class MosaicLecturePlugin extends Plugin {
       targetGrade,
     };
 
-    new Notice(`Mosaic: ${slug} 생성 시작 (Level: ${level}, Grade: ${targetGrade})`);
     await this.ensureFolder(folder);
     await this.upsertText(`${folder}/source.md`, sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`);
 
+    const modal = new ProgressModal(this.app, slug, this.settings.model);
+    modal.open();
+
     try {
-      const result = await generateLectureAssets(this.settings, input);
+      const result = await generateLectureAssets(this.settings, input, () => modal.advance());
 
       // triage 결과를 파일로 저장
       if (result.triage) {
@@ -437,6 +440,8 @@ export default class MosaicLecturePlugin extends Plugin {
 
       const pipelineMode = result.bundle ? "3-Call (Triage → Dense → K-Master)" : result.triage ? "2-Call (Triage → Generation)" : "1-Call (Fallback)";
 
+      modal.complete(result.auditResult?.score);
+
       // Audit 점수 < 80이면 경고 Notice
       if (result.auditResult && !result.auditResult.pass) {
         new Notice(`Mosaic: ⚠️ Audit ${result.auditResult.score}/100 — 품질 기준 미달 (80점 미만). run-report.md 확인.`);
@@ -469,9 +474,8 @@ ${triageSection}
 > - **[MOSAIC]**: 학생 및 강사용 통합 강의 자산이 [[${folder}/[MOSAIC]_${slug}.md|이곳]]에 생성되었습니다.
 `;
       await this.upsertText(`${folder}/run-report.md`, reportMd);
-
-      new Notice(`Mosaic: ${slug} 생성 완료`);
     } catch (error) {
+      modal.close();
       const errorMd = `---
 type: mosaic-report
 status: failed
