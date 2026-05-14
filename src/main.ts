@@ -399,6 +399,14 @@ export default class MosaicLecturePlugin extends Plugin {
         );
       }
 
+      // dense analysis 번들 저장
+      if (result.bundle) {
+        await this.upsertText(
+          `${folder}/03.analysis-bundle.json`,
+          JSON.stringify(result.bundle, null, 2) + "\n",
+        );
+      }
+
       // 메타데이터가 있으면 원본 노트의 YAML 업데이트 (triage 우선, 메타데이터 보완)
       if (result.metadata || result.triage) {
         await this.app.fileManager.processFrontMatter(file, (fm) => {
@@ -423,9 +431,10 @@ export default class MosaicLecturePlugin extends Plugin {
         }
       }
 
+      const pipelineMode = result.bundle ? "3-Call (Triage → Dense → K-Master)" : result.triage ? "2-Call (Triage → Generation)" : "1-Call (Fallback)";
       const triageSection = result.triage
-        ? `\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}`
-        : "\n## Triage\n- triage 미실행 (기본값 적용)";
+        ? `\n## Pipeline\n- **모드**: ${pipelineMode}\n\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}`
+        : `\n## Pipeline\n- **모드**: ${pipelineMode}`;
 
       const reportMd = `---
 type: mosaic-report
