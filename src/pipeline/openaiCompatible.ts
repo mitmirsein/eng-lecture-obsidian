@@ -38,6 +38,7 @@ export async function generateLectureAssets(
         },
       ],
       temperature: 0.4,
+      max_tokens: 8192,
     }),
   });
 
