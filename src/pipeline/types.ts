@@ -6,6 +6,7 @@ export interface MosaicSettings {
   outputRoot: string;
   defaultLevel: string;
   defaultTargetGrade: string;
+  generatePdf: boolean;
 }
 
 export interface GenerationInput {

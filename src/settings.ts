@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: MosaicSettings = {
   outputRoot: "Mosaic_Eng/Outputs",
   defaultLevel: "H1",
   defaultTargetGrade: "고등",
+  generatePdf: true,
 };
 
 export const API_KEY_SECRET_ID = "mosaic-eng-lecture-api-key";
@@ -178,6 +179,16 @@ export class MosaicSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.outputRoot)
         .onChange(async (value) => {
           this.plugin.settings.outputRoot = value.trim() || DEFAULT_SETTINGS.outputRoot;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName("Generate PDF")
+      .setDesc("마크다운 교안 생성 후 자동으로 PDF를 생성한다. (Pandoc 및 XeLaTeX 설치 필요)")
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.generatePdf)
+        .onChange(async (value) => {
+          this.plugin.settings.generatePdf = value;
           await this.plugin.saveSettings();
         }));
 

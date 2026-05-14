@@ -1,4 +1,5 @@
-import { Notice, Plugin, TFile, MarkdownView } from "obsidian";
+import { Notice, Plugin, TFile, MarkdownView, FileSystemAdapter } from "obsidian";
+import { execSync } from "child_process";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
@@ -137,6 +138,21 @@ export default class MosaicLecturePlugin extends Plugin {
         }
       },
     });
+
+    this.addCommand({
+      id: "export-to-pdf",
+      name: "Mosaic: Export Current File to PDF",
+      checkCallback: (checking: boolean) => {
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (view && view.file) {
+          if (!checking) {
+            this.exportToPdf(view.file);
+          }
+          return true;
+        }
+        return false;
+      },
+    });
   }
 
   async loadSettings() {
@@ -222,6 +238,14 @@ export default class MosaicLecturePlugin extends Plugin {
 
       await this.upsertText(`${folder}/[MOSAIC]_${slug}.md`, result.masterMarkdown.trim() + "\n");
       
+      if (this.settings.generatePdf) {
+        // 방금 생성한 파일을 가져오자.
+        const pdfSource = this.app.vault.getAbstractFileByPath(`${folder}/[MOSAIC]_${slug}.md`);
+        if (pdfSource instanceof TFile) {
+          await this.exportToPdf(pdfSource);
+        }
+      }
+
       const reportMd = `---
 type: mosaic-report
 status: success
@@ -262,6 +286,29 @@ ${errorMessage(error)}
 `;
       await this.upsertText(`${folder}/run-report.md`, errorMd);
       throw error;
+    }
+  }
+  async exportToPdf(file: TFile) {
+    if (!(this.app.vault.adapter instanceof FileSystemAdapter)) {
+      new Notice("Mosaic: FileSystemAdapter가 필요합니다.");
+      return;
+    }
+
+    const adapter = this.app.vault.adapter as FileSystemAdapter;
+    const mdPath = adapter.getFullPath(file.path);
+    const pdfPath = mdPath.replace(/\.md$/, ".pdf");
+
+    new Notice(`Mosaic: PDF 변환 중... (${file.basename})`);
+
+    try {
+      // engine.js와 동일한 pandoc 커맨드 사용
+      const cmd = `pandoc "${mdPath}" --pdf-engine=xelatex -V geometry:"a4paper,margin=3cm" -V linestretch=1.5 -V mainfont="Pretendard" -o "${pdfPath}"`;
+      
+      execSync(cmd);
+      new Notice(`Mosaic: PDF 생성 완료: ${file.basename}.pdf`);
+    } catch (error) {
+      console.error("Mosaic PDF Error:", error);
+      new Notice(`Mosaic: PDF 변환 실패 - ${errorMessage(error)}`);
     }
   }
 }
