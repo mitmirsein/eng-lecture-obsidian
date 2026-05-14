@@ -1,4 +1,4 @@
-export type ProblemType = "어법_선택형" | "어법_서술형" | "빈칸추론" | "내용일치" | "순서삽입" | "기타";
+export type ProblemType = "어법_선택형" | "어법_서술형" | "빈칸추론" | "내용일치" | "순서삽입" | "주제_제목_요지" | "기타";
 export type TargetGrade = "중등" | "고등" | "Ambiguous";
 export type InstructorName = "Insight" | "Ella" | "Miranda" | "Luna" | "Sunny" | "Lex" | "Villanelle" | "Quill";
 

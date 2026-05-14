@@ -13,6 +13,7 @@ export function buildTriagePrompt(input: GenerationInput): string {
 | 빈칸추론 | 매력적 오답 프레임 — 반대 정보·부분 일치·범위 초과 | ["Miranda","Lex"] | ["Luna"] |
 | 내용일치 | 부분 정보·일반화·세부 혼동 | ["Luna","Lex"] | ["Sunny"] |
 | 순서삽입 | 응집 마커(연결사·지시어·대명사) 기반 단절점 분석 | ["Miranda"] | ["Ella"] |
+| 주제_제목_요지 | 매력적 오답 프레임 — 지엽적 정보·반대 정보·범위 초과 | ["Ella","Miranda"] | ["Sunny"] |
 | 기타 | 유형 미확정 — 전체 페르소나 균등 적용 | ["Insight"] | [] |
 
 ## confidence 계산
@@ -24,7 +25,7 @@ export function buildTriagePrompt(input: GenerationInput): string {
 
 ## 반환 JSON (additionalProperties 금지)
 {
-  "problem_type": "어법_선택형" | "어법_서술형" | "빈칸추론" | "내용일치" | "순서삽입" | "기타",
+  "problem_type": "어법_선택형" | "어법_서술형" | "빈칸추론" | "내용일치" | "순서삽입" | "주제_제목_요지" | "기타",
   "target_grade": "중등" | "고등" | "Ambiguous",
   "trap_frame": "(위 표 해당 행 값 그대로)",
   "persona_priority": { "lead": ["..."], "reduce": ["..."] },
