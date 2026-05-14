@@ -1,4 +1,4 @@
-import type { GenerationInput, TriageResult } from "./types";
+import type { DenseBundle, GenerationInput, TriageResult } from "./types";
 
 export function buildTriagePrompt(input: GenerationInput): string {
   return `너는 Mosaic Curriculum Pipeline의 Triage Orchestrator다.
@@ -111,4 +111,223 @@ ${input.sourceText}
 
 반드시 위 JSON 구조를 따르는 응답만 반환하라.
 `;
+}
+
+export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: TriageResult): string {
+  const needsMasking = triage && ["어법_선택형", "어법_서술형", "빈칸추론"].includes(triage.problem_type);
+  const maskingNote = needsMasking
+    ? "어법/빈칸 문항 — 정답 영역을 [   ]로 마스킹한 block_a_masked 필수"
+    : "block_a_masked 생략 가능";
+  const leadNote = triage
+    ? `리드 강사 (80% 집중): ${triage.persona_priority.lead.join(", ")} | 축소 강사: ${triage.persona_priority.reduce.join(", ") || "없음"}`
+    : "";
+  const trapNote = triage ? `함정 프레임: ${triage.trap_frame}` : "";
+
+  return `너는 Mosaic Curriculum Pipeline Analyst-Line이다.
+8인의 전문 강사가 동시에 지문을 해부하여 분석 번들 JSON을 생성한다.
+
+## Triage 행동 규칙
+- 문항 유형: ${triage?.problem_type ?? "미확정"}
+- ${trapNote}
+- ${leadNote}
+
+## 8인 강사 역할
+- Insight: 각 오답 선지의 인지적 함정 원리 분석 (distractor_intelligence)
+- Ella: 학술 주제·심층 요지 메타인지
+- Luna: 문장별 청크 직독직해 + ${maskingNote}
+- Sunny: 핵심 구문 300자 이상 정밀 분석 + 5초 시각 판별법
+- Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
+- Lex: 핵심 어휘 정의 + 3단계 재진술 DB
+- Villanelle: 제목·핵심 메시지 topic_master
+- Quill: 서술형 영작 과제 (Q→A→한국어)
+
+## 반환 JSON 스키마
+{
+  "passage_id": "${input.slug}",
+  "block_a": {
+    "clean_passage": "마스킹/해설 없는 원문 지문 그대로",
+    "questions": ["발문 1문장 (예: 위 글의 제목으로 가장 적절한 것은?)"],
+    "choices": ["① ...", "② ...", "③ ...", "④ ...", "⑤ ..."]
+  },
+  "instructors": {
+    "insight": {
+      "key_points": ["출제 타격 포인트 1", "포인트 2"],
+      "traps_summary": "함정 전략 전체 요약 (~한다체)",
+      "distractor_intelligence": [
+        {"distractor_no": 1, "trap_type": "Partial/Detail/Opposite/Scope/기타", "cognitive_reason": "인지적 낚임 원리 (~한다체)"}
+      ]
+    },
+    "ella": {
+      "theme_ko": "국문 학술 주제",
+      "theme_en": "Academic theme in English",
+      "main_idea_ko": "심층 요지 (~한다체, 50자 이상)",
+      "coaching_tip": "강사 코칭 전략 (~한다체)"
+    },
+    "luna": {
+      "chunks": [
+        {"sentence_idx": 1, "chunk_text": "끊어읽기 단위 원문", "literal_translation": "직역 한국어"}
+      ],
+      "topic_sentence": {"sentence_idx": 1, "text": "주제문 원문"},
+      "summary": "전체 요약 (~한다체)",
+      "block_a_masked": "(어법/빈칸 문항일 때만) 정답 영역 [   ] 마스킹 지문 전문"
+    },
+    "sunny": {
+      "grammar_deep_dive": "핵심 구문 구조 정밀 분석 (~한다체, 300자 이상)",
+      "visual_cue": "5초 판별법 1-2문장 (어법/빈칸 필수, 그 외 생략 가능)"
+    },
+    "miranda": {
+      "labeled_sentences": [
+        {"sentence_idx": 1, "logic_label": "주제문/근거/예시/부연/결론/전환", "connector": "연결어 또는 없음"}
+      ],
+      "logic_route": "논리 경로 (예: 도입 → 문제제기 → 근거 → 결론)",
+      "cohesion_bridges": [
+        {"sentence_pair": "S1-S2", "bridge_type": "연결어/지시어/재진술/관사/인과(Q&A)/기타", "bridge_word": "핵심 연결 단어", "explanation": "응집 설명 (~한다체)"}
+      ]
+    },
+    "lex": {
+      "vocabulary_entries": [
+        {"word": "원형", "pos": "n./v./adj./adv.", "definition": "영영 정의", "korean": "한국어 뜻"}
+      ],
+      "paraphrase_layers": [
+        {"keyword": "핵심어", "synonyms": ["동의어1"], "contextual_equivalents": ["문맥 대체어"], "antonym_negation": "반의어 부정 표현"}
+      ]
+    },
+    "villanelle": {
+      "topic_master": {"title_ko": "제목 변형 후보 (한국어)", "core_message": "핵심 메시지 1문장 (~한다체)"}
+    },
+    "quill": {
+      "writing_tasks": [
+        {"q": "영어 발문", "a": "모범 영어 답안", "a_ko": "한국어 해석"}
+      ]
+    }
+  }
+}
+
+## 입력 데이터
+지문 ID: ${input.slug} | 레벨: ${input.level} | 학년: ${input.targetGrade}
+
+원문:
+${input.sourceText}
+
+반드시 위 JSON만 반환하라. 이탤릭(*text*, _text_) 금지. 강조는 **text**만.`;
+}
+
+export function buildKMasterPrompt(
+  input: GenerationInput,
+  triage: TriageResult | undefined,
+  bundle: DenseBundle,
+): string {
+  const bundleJson = JSON.stringify(bundle, null, 2);
+  const isMaskingTarget = triage && ["어법_선택형", "어법_서술형", "빈칸추론"].includes(triage.problem_type);
+
+  return `너는 Mosaic Curriculum Pipeline K-Master (최종 교안 발행자)이다.
+분석 번들을 바탕으로 포렌식 교안 전체를 마크다운으로 렌더링하고,
+원본 문항과 다른 유형의 변형 문항 1-2개를 설계한다.
+
+## Triage
+- 유형: ${triage?.problem_type ?? "미확정"} | 함정 프레임: ${triage?.trap_frame ?? ""}
+
+## 분석 번들
+\`\`\`json
+${bundleJson}
+\`\`\`
+
+## 반환 JSON
+{
+  "metadata": {
+    "passage_id": "영문 ID",
+    "level": "H1/H2/H3/M1/M2/M3",
+    "problem_type": "문항 유형",
+    "topic": "핵심 소재/주제 (한국어)",
+    "correct_answer": "정답 번호"
+  },
+  "masterMarkdown": "포렌식 교안 마크다운 전문"
+}
+
+## 교안 마크다운 필수 구조
+---
+title: "지문ID 포렌식 교안"
+---
+
+# 📖 **지문ID**
+> **Mosaic Academy** 영어과 | **레벨:** Level | **대상:** Grade
+
+---
+
+# 📝 **BLOCK A — 풀기 전 (먼저 풀어보세요)**
+### **[지문]**
+${isMaskingTarget ? "(bundle.instructors.luna.block_a_masked 사용)" : "(bundle.block_a.clean_passage 사용)"}
+### **[문항]**
+(bundle.block_a.questions 사용)
+### **[선지]**
+(bundle.block_a.choices 사용)
+
+---
+
+# 🔬 **BLOCK B — 포렌식 해부**
+**🎯 정답: {correct_answer}**
+
+---
+
+## 01. 인사이트: 출제 의도 및 함정 분석
+### **🎯 출제 타격 지점**
+(insight.key_points → 불릿)
+### **🧠 오답의 인지적 해부**
+| 번호 | 함정 유형 | 인지적 낚임 포인트 |
+(insight.distractor_intelligence → 표)
+
+---
+
+## 02. 엘라 & 미란다: 거시 독해
+### **🏷️ 주제 및 요지**
+(ella 데이터)
+### **🧩 논리 구조 및 응집성**
+| 문장 쌍 | 연결 방식 | 핵심 단어 | 논리적 결속 원리 |
+(miranda.cohesion_bridges → 표)
+> **논리 경로:** (miranda.logic_route)
+
+---
+
+## 03. 루나: 직독직해 (전체 복원)
+(luna.chunks → [Sn] 형식, chunk_text / literal_translation 병기)
+
+---
+
+## 04. 써니: 구문 정밀 해부
+(sunny.grammar_deep_dive)
+${isMaskingTarget ? "(sunny.visual_cue 포함)" : ""}
+
+---
+
+## 05. 렉스: 어휘 및 재진술 레이어
+### **[핵심 어휘]**
+(lex.vocabulary_entries → 불릿)
+### **🔄 3단계 재진술 DB**
+| 키워드 | 동의어 | 문맥적 대체어 | 반의어 부정 |
+(lex.paraphrase_layers → 표)
+
+---
+
+## 06. 빌라넬 & 퀼: 변형 대비 및 영작
+### **[지문 변형 포인트]**
+(villanelle.topic_master.core_message 인용구)
+(quill.writing_tasks → Q/A 형식)
+
+---
+
+## 07. K마스터: 변형 문항
+### **🕵️ 출제 전략**
+(변형 전략 설명 — 원본 유형 [${triage?.problem_type ?? ""}] 중복 금지)
+(변형 문항 1-2개 설계 — 선지는 수능 실제 형식 준수)
+
+## 입력 데이터
+지문 ID: ${input.slug} | 레벨: ${input.level} | 학년: ${input.targetGrade}
+
+## 규칙
+1. ~한다체 사용
+2. 이탤릭(*text*, _text_) 금지. 굵게(**text**)만
+3. 모든 섹션 데이터 빠짐없이 렌더링
+4. 변형 문항은 원본 유형과 반드시 다른 유형으로 설계
+
+반드시 위 JSON만 반환하라.`;
 }

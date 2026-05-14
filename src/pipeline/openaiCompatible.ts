@@ -1,6 +1,6 @@
 import { requestUrl } from "obsidian";
-import type { GenerationInput, GenerationOutput, MosaicSettings, TriageResult } from "./types";
-import { buildTriagePrompt, buildGenerationPrompt } from "./prompt";
+import type { DenseBundle, GenerationInput, GenerationOutput, MosaicSettings, TriageResult } from "./types";
+import { buildDenseAnalysisPrompt, buildGenerationPrompt, buildKMasterPrompt, buildTriagePrompt } from "./prompt";
 
 function extractJson(text: string): unknown {
   try {
@@ -99,28 +99,92 @@ export async function runTriage(
   }
 }
 
+async function runDenseAnalysis(
+  settings: MosaicSettings,
+  input: GenerationInput,
+  triage?: TriageResult,
+): Promise<DenseBundle | undefined> {
+  console.log("Mosaic [Dense Analysis]: 8인 번들 분석 시작");
+  try {
+    const content = await callLLM(
+      settings,
+      "Return only valid JSON. Do not wrap the response in Markdown fences.",
+      buildDenseAnalysisPrompt(input, triage),
+      8192,
+    );
+    const parsed = extractJson(content) as Partial<DenseBundle>;
+    if (!parsed.block_a || !parsed.instructors) {
+      console.warn("Mosaic [Dense Analysis]: block_a 또는 instructors 누락 — 번들 실패");
+      return undefined;
+    }
+    const inst = parsed.instructors;
+    if (!inst.insight || !inst.ella || !inst.luna || !inst.sunny || !inst.miranda || !inst.lex || !inst.villanelle || !inst.quill) {
+      console.warn("Mosaic [Dense Analysis]: 강사 데이터 불완전 — 번들 실패");
+      return undefined;
+    }
+    console.log("Mosaic [Dense Analysis]: 번들 생성 완료");
+    return parsed as DenseBundle;
+  } catch (err) {
+    console.warn("Mosaic [Dense Analysis]: 실패 — 단일 호출 fallback 사용", err);
+    return undefined;
+  }
+}
+
+async function runKMaster(
+  settings: MosaicSettings,
+  input: GenerationInput,
+  triage: TriageResult | undefined,
+  bundle: DenseBundle,
+): Promise<GenerationOutput> {
+  console.log("Mosaic [K-Master]: 교안 렌더링 시작");
+  const content = await callLLM(
+    settings,
+    "Return only valid JSON. Do not wrap the response in Markdown fences.",
+    buildKMasterPrompt(input, triage, bundle),
+    8192,
+  );
+  const parsed = extractJson(content) as Partial<GenerationOutput>;
+  if (typeof parsed.masterMarkdown !== "string") {
+    throw new Error("K-Master JSON must include masterMarkdown.");
+  }
+  console.log("Mosaic [K-Master]: 교안 렌더링 완료");
+  return {
+    masterMarkdown: parsed.masterMarkdown,
+    metadata: parsed.metadata,
+    triage,
+    bundle,
+    raw: content,
+  };
+}
+
 export async function generateLectureAssets(
   settings: MosaicSettings,
   input: GenerationInput,
 ): Promise<GenerationOutput> {
   if (!settings.apiKey.trim()) throw new Error("API key is not configured.");
 
+  // Call 1: Triage
   const triage = await runTriage(settings, input);
 
-  console.log(`Mosaic [Generate]: ${settings.provider} -> ${settings.endpoint} (${settings.model})`);
+  // Call 2: Dense Analysis
+  const bundle = await runDenseAnalysis(settings, input, triage);
 
+  // Call 3: K-Master (or fallback to single-call)
+  if (bundle) {
+    return await runKMaster(settings, input, triage, bundle);
+  }
+
+  console.warn("Mosaic: Dense Analysis 실패 — 단일 호출 fallback");
   const content = await callLLM(
     settings,
     "Return only valid JSON. Do not wrap the response in Markdown fences.",
     buildGenerationPrompt(input, triage),
     8192,
   );
-
   const parsed = extractJson(content) as Partial<GenerationOutput>;
   if (typeof parsed.masterMarkdown !== "string") {
     throw new Error("LLM JSON must include masterMarkdown.");
   }
-
   return {
     masterMarkdown: parsed.masterMarkdown,
     metadata: parsed.metadata,
