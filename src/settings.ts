@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import type MosaicLecturePlugin from "./main";
 import type { MosaicSettings } from "./pipeline/types";
 
@@ -290,6 +290,26 @@ export class MosaicSettingTab extends PluginSettingTab {
             });
         });
     }
+
+    new Setting(containerEl)
+      .setName("Save Settings")
+      .setDesc("모든 설정은 자동으로 저장되지만, 명시적으로 저장하고 싶을 때 사용한다.")
+      .addButton((button) => {
+        button
+          .setButtonText("Save All Settings")
+          .setCta()
+          .onClick(async () => {
+            await this.plugin.saveSettings();
+            // @ts-ignore
+            new Notice("Mosaic settings saved successfully!");
+            button.setButtonText("Saved!");
+            button.setDisabled(true);
+            setTimeout(() => {
+              button.setButtonText("Save All Settings");
+              button.setDisabled(false);
+            }, 2000);
+          });
+      });
 
     section(
       containerEl,
