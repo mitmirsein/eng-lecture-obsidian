@@ -1,73 +1,46 @@
 # Mosaic Eng Lecture Obsidian
 
 Mosaic 커리큘럼 파이프라인의 Obsidian 네이티브 패키징 트랙입니다.
+지문 노트를 분석하여 고품질의 한국어 영어 강의 자산(MOSAIC)을 단 한 번의 클릭으로 생성합니다.
 
-이 프로젝트는 의도적으로 `projects/eng-lecture`보다 작은 규모로 시작되었습니다. 대시보드, Antigravity 위임, Pandoc PDF 렌더링, Node 자식 프로세스 러너 기능은 기존 프로젝트에 유지됩니다. 본 플러그인 트랙은 다음 사항에 집중합니다:
+## 📥 설치 방법
 
-- Obsidian 볼트 내의 활성 노트 또는 선택된 텍스트 읽기
-- 사용자가 직접 API 키와 모델을 설정할 수 있는 환경 제공
-- 볼트 내부에 학생용/교사용 마크다운 자산(assets) 생성
-- 한국 학술적 톤과 포렌식 교수법 표준 유지
+### BRAT을 통한 설치 (추천)
+1. Obsidian 설정에서 **BRAT** 플러그인을 설치하고 활성화합니다.
+2. BRAT 설정에서 **Add Beta plugin**을 클릭합니다.
+3. 다음 GitHub 저장소 주소를 입력합니다: `https://github.com/mitmirsein/mosaic-eng-lecture-obsidian`
+4. **Add Plugin**을 클릭하면 즉시 설치됩니다.
 
-## MVP 범위
+### 수동 설치
+1. [Releases](https://github.com/mitmirsein/mosaic-eng-lecture-obsidian/releases)에서 `main.js`, `manifest.json`, `styles.css`를 다운로드합니다.
+2. 볼트의 `.obsidian/plugins/mosaic-eng-lecture/` 폴더에 넣습니다.
+3. 플러그인을 활성화합니다.
 
-1. 노트에서 텍스트를 선택하거나, 지문 노트 내에 커서를 위치시킵니다.
-2. `Mosaic: Generate MASTER/TEACHER` 명령을 실행합니다.
-3. 플러그인이 설정된 LLM 제공자를 호출합니다.
-4. 플러그인이 다음 파일들을 작성합니다:
-   - `Mosaic/outputs/<slug>/source.md`
-   - `Mosaic/outputs/<slug>/[MASTER]_<slug>.md`
-   - `Mosaic/outputs/<slug>/[TEACHER]_<slug>.md`
-   - `Mosaic/outputs/<slug>/run-log.json`
+## ✨ 주요 기능
+- **스마트 파싱(Smart Ingest)**: 지문을 복붙만 하면 AI가 유형, 주제, 레벨을 파악하고 YAML을 자동 업데이트합니다.
+- **포렌식 통합 교안 생성**: 8인의 전문 AI 페르소나가 분석한 고품질 강의 자산(MOSAIC)을 생성합니다.
+- **직관적인 UI**: 사이드바 아이콘 및 마우스 우클릭 메뉴를 통해 즉시 실행할 수 있습니다.
+- **멀티 모델 지원**: OpenAI, Claude, Gemini, Grok 등 최신 LLM을 지원합니다.
+- **보안**: API 키는 Obsidian의 `app.secretStorage`를 통해 안전하게 저장됩니다.
 
-## MVP 제외 항목
+## 🚀 사용 방법
+1. **지문 준비**: 새 노트를 만들고 분석할 영어 지문(문항, 선지 포함)을 복사해서 붙여넣습니다.
+2. **분석 실행**:
+   - 사이드바의 **Mosaic 아이콘**(책 모양)을 클릭하거나,
+   - 에디터에서 **마우스 우클릭** 후 `Generate Mosaic Lecture Asset`을 선택합니다.
+3. **결과 확인**: 설정된 출력 폴더(기본: `Mosaic/outputs`)에 분석 리포트와 교안이 생성됩니다. 원본 노트의 YAML도 자동으로 채워집니다.
 
-- Antigravity 오케스트레이션
-- Pandoc/PDF 생성
-- 로컬 Node `core/run.js`
-- 배치(Batch) 모드
-- 볼트 외부 파일 시스템 쓰기
+---
 
-이러한 기능들은 볼트 네이티브 워크플로우가 검증된 이후에 추가될 수 있습니다.
+## 🛠️ 개발 가이드
 
-## 보안 관련 참고 사항
-
-API 키는 Obsidian의 `app.secretStorage`를 통해 안전하게 저장됩니다.
-`data.json`의 일반 플러그인 설정에는 엔드포인트, 모델, 출력 폴더 및 기본값과 같은 비보안 값만 저장됩니다.
-
-## 빌드
-
+### 빌드
 ```bash
 npm install
 npm run build
 ```
 
-빌드 결과물:
+빌드 결과물(`main.js`, `manifest.json`, `styles.css`)은 저장소 루트에 커밋되어야 BRAT을 통해 정상적으로 설치됩니다.
 
-- `main.js`
-- `manifest.json`
-- `versions.json`
-
-로컬 테스트를 위해 이 폴더를 다음 경로로 복사하거나 심볼릭 링크를 생성하세요:
-
-```text
-<Vault>/.obsidian/plugins/mosaic-eng-lecture/
-```
-
-## BRAT 설치
-
-BRAT은 플러그인 저장소 루트에 빌드된 런타임 파일이 포함되어 있기를 기대합니다. 이 저장소에는 다음 파일들이 커밋됩니다:
-
-- `manifest.json`
-- `main.js`
-- `styles.css`
-
-비공개 GitHub 저장소를 사용할 수 있게 된 후:
-
-1. Obsidian BRAT 플러그인을 설치하고 활성화합니다.
-2. BRAT 설정을 엽니다.
-3. `Add Beta plugin`을 선택합니다.
-4. GitHub 저장소 경로를 입력합니다 (예: `owner/mosaic-eng-lecture-obsidian`).
-5. 커뮤니티 플러그인에서 `Mosaic Eng Lecture`를 활성화합니다.
-
-비공개 저장소의 경우, 사용자 머신에 BRAT/GitHub 접근 권한이 설정되어 있어야 합니다. BRAT이 비공개 저장소를 읽을 수 없는 경우, 테스트용으로 임시 공개 저장소를 사용하거나 개발 중에는 로컬 심볼릭 링크를 통해 설치하십시오.
+### 라이선스
+Mosaic Curriculum Pipeline
