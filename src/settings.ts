@@ -7,7 +7,7 @@ export const DEFAULT_SETTINGS: MosaicSettings = {
   endpoint: "https://api.openai.com/v1/chat/completions",
   apiKey: "",
   model: "gpt-5.5-pro",
-  outputRoot: "Mosaic_Eng",
+  outputRoot: "Mosaic_Eng/Outputs",
   defaultLevel: "H1",
   defaultTargetGrade: "고등",
 };
