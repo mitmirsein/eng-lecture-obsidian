@@ -391,12 +391,22 @@ export default class MosaicLecturePlugin extends Plugin {
     try {
       const result = await generateLectureAssets(this.settings, input);
 
-      // 메타데이터가 있으면 원본 노트의 YAML 업데이트 (자동 분류 및 파싱)
-      if (result.metadata) {
+      // triage 결과를 파일로 저장
+      if (result.triage) {
+        await this.upsertText(
+          `${folder}/02t.triage.json`,
+          JSON.stringify(result.triage, null, 2) + "\n",
+        );
+      }
+
+      // 메타데이터가 있으면 원본 노트의 YAML 업데이트 (triage 우선, 메타데이터 보완)
+      if (result.metadata || result.triage) {
         await this.app.fileManager.processFrontMatter(file, (fm) => {
+          // triage가 있으면 problem_type은 triage 값 우선
+          const problemType = result.triage?.problem_type || result.metadata?.problem_type;
+          if (problemType) fm["problem_type"] = problemType;
           if (result.metadata?.passage_id && !fm["passage_id"]) fm["passage_id"] = result.metadata.passage_id;
           if (result.metadata?.level && (!fm["level"] || fm["level"] === "H1")) fm["level"] = result.metadata.level;
-          if (result.metadata?.problem_type) fm["problem_type"] = result.metadata.problem_type;
           if (result.metadata?.topic) fm["topic"] = result.metadata.topic;
           if (result.metadata?.correct_answer) fm["correct_answer"] = result.metadata.correct_answer;
         });
@@ -413,6 +423,10 @@ export default class MosaicLecturePlugin extends Plugin {
         }
       }
 
+      const triageSection = result.triage
+        ? `\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}`
+        : "\n## Triage\n- triage 미실행 (기본값 적용)";
+
       const reportMd = `---
 type: mosaic-report
 status: success
@@ -425,6 +439,7 @@ date: ${new Date().toLocaleString()}
 - **Source**: [[${file.name}]]
 - **Model**: \`${this.settings.model}\`
 - **Generated At**: ${new Date().toLocaleString()}
+${triageSection}
 
 > [!INFO]
 > - **[MOSAIC]**: 학생 및 강사용 통합 강의 자산이 [[${folder}/[MOSAIC]_${slug}.md|이곳]]에 생성되었습니다.
