@@ -112,7 +112,7 @@ async function runDenseAnalysis(
       settings,
       "Return only valid JSON. Do not wrap the response in Markdown fences.",
       buildDenseAnalysisPrompt(input, triage),
-      8192,
+      16384,
     );
     const parsed = extractJson(content) as Partial<DenseBundle>;
     if (!parsed.block_a || !parsed.instructors) {
