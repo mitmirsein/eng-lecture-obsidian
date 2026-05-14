@@ -316,12 +316,14 @@ export default class MosaicLecturePlugin extends Plugin {
 
     const fontDir = `${dirname(fonts.regular).replace(/\\/g, "/")}/`;
     const content = [
-      "\\setmainfont{Pretendard-Regular.otf}[",
+      "\\usepackage{fontspec}",
+      "\\setmainfont[",
       `  Path={${texEscapePath(fontDir)}},`,
+      "  UprightFont={Pretendard-Regular.otf},",
       "  BoldFont={Pretendard-Bold.otf},",
       "  ItalicFont={Pretendard-Regular.otf},",
       "  BoldItalicFont={Pretendard-Bold.otf}",
-      "]",
+      "]{Pretendard}",
       "",
     ].join("\n");
 
