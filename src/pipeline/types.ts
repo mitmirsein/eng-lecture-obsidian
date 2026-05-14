@@ -88,6 +88,29 @@ export interface DenseBundle {
   };
 }
 
+export interface KMasterMeta {
+  design_strategy: string;
+  coaching_tip: string;
+  answer_recheck: {
+    kmaster_verdict: "정합" | "불일치";
+    discrepancy_note?: string;
+  };
+  variant_question_type: string;
+}
+
+export interface AuditItem {
+  item: string;
+  code: string;
+  score: number;
+  status: string;
+}
+
+export interface AuditResult {
+  pass: boolean;
+  score: number;
+  items: AuditItem[];
+}
+
 export interface GenerationOutput {
   masterMarkdown: string;
   metadata?: {
@@ -99,5 +122,7 @@ export interface GenerationOutput {
   };
   triage?: TriageResult;
   bundle?: DenseBundle;
+  kmaster_meta?: KMasterMeta;
+  auditResult?: AuditResult;
   raw: unknown;
 }
