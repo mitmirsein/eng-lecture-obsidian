@@ -1,6 +1,8 @@
 import { requestUrl } from "obsidian";
-import type { DenseBundle, GenerationInput, GenerationOutput, MosaicSettings, TriageResult } from "./types";
+import type { DenseBundle, GenerationInput, GenerationOutput, KMasterMeta, MosaicSettings, TriageResult } from "./types";
 import { buildDenseAnalysisPrompt, buildGenerationPrompt, buildKMasterPrompt, buildTriagePrompt } from "./prompt";
+import { runSchemaGate } from "./schemaGate";
+import { runForensicAudit } from "./audit";
 
 function extractJson(text: string): unknown {
   try {
@@ -122,8 +124,16 @@ async function runDenseAnalysis(
       console.warn("Mosaic [Dense Analysis]: 강사 데이터 불완전 — 번들 실패");
       return undefined;
     }
+    const bundle = parsed as DenseBundle;
+    const violations = runSchemaGate(bundle);
+    if (violations.length > 0) {
+      console.warn("Mosaic [Schema Gate]:", violations.map(v => `${v.path}: ${v.actual}`).join(", "));
+      console.warn("Mosaic [Schema Gate]: 구조 위반 — fallback 사용");
+      return undefined;
+    }
+    console.log("Mosaic [Schema Gate]: PASS");
     console.log("Mosaic [Dense Analysis]: 번들 생성 완료");
-    return parsed as DenseBundle;
+    return bundle;
   } catch (err) {
     console.warn("Mosaic [Dense Analysis]: 실패 — 단일 호출 fallback 사용", err);
     return undefined;
@@ -143,16 +153,25 @@ async function runKMaster(
     buildKMasterPrompt(input, triage, bundle),
     8192,
   );
-  const parsed = extractJson(content) as Partial<GenerationOutput>;
+  const parsed = extractJson(content) as Partial<GenerationOutput & { kmaster_meta: KMasterMeta }>;
   if (typeof parsed.masterMarkdown !== "string") {
     throw new Error("K-Master JSON must include masterMarkdown.");
   }
   console.log("Mosaic [K-Master]: 교안 렌더링 완료");
+
+  const kmaster_meta = parsed.kmaster_meta;
+  const correctAnswer = parsed.metadata?.correct_answer;
+
+  const auditResult = runForensicAudit(bundle, kmaster_meta, triage, correctAnswer);
+  console.log(`Mosaic [Audit]: ${auditResult.score}/100 — ${auditResult.pass ? "PASS" : "FAIL"}`);
+
   return {
     masterMarkdown: parsed.masterMarkdown,
     metadata: parsed.metadata,
     triage,
     bundle,
+    kmaster_meta,
+    auditResult,
     raw: content,
   };
 }

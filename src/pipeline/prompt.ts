@@ -241,6 +241,15 @@ ${bundleJson}
     "topic": "핵심 소재/주제 (한국어)",
     "correct_answer": "정답 번호"
   },
+  "kmaster_meta": {
+    "design_strategy": "변형 문항 출제 전략 (~한다체, 40자 이상)",
+    "coaching_tip": "강사용 문항 해설 전략 (~한다체, 40자 이상)",
+    "answer_recheck": {
+      "kmaster_verdict": "정합" | "불일치",
+      "discrepancy_note": "(불일치 시에만) 사유"
+    },
+    "variant_question_type": "설계한 변형 문항의 유형 (예: 빈칸추론)"
+  },
   "masterMarkdown": "포렌식 교안 마크다운 전문"
 }
 

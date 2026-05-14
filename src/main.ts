@@ -432,9 +432,20 @@ export default class MosaicLecturePlugin extends Plugin {
       }
 
       const pipelineMode = result.bundle ? "3-Call (Triage → Dense → K-Master)" : result.triage ? "2-Call (Triage → Generation)" : "1-Call (Fallback)";
+
+      // Audit 점수 < 80이면 경고 Notice
+      if (result.auditResult && !result.auditResult.pass) {
+        new Notice(`Mosaic: ⚠️ Audit ${result.auditResult.score}/100 — 품질 기준 미달 (80점 미만). run-report.md 확인.`);
+      }
+
+      const auditSection = result.auditResult
+        ? `\n## Audit (${result.auditResult.score}/100 — ${result.auditResult.pass ? "✅ PASS" : "❌ FAIL"})\n` +
+          result.auditResult.items.map(i => `- **${i.item}** (${i.score}점): ${i.status}`).join("\n")
+        : "";
+
       const triageSection = result.triage
-        ? `\n## Pipeline\n- **모드**: ${pipelineMode}\n\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}`
-        : `\n## Pipeline\n- **모드**: ${pipelineMode}`;
+        ? `\n## Pipeline\n- **모드**: ${pipelineMode}\n\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}${auditSection}`
+        : `\n## Pipeline\n- **모드**: ${pipelineMode}${auditSection}`;
 
       const reportMd = `---
 type: mosaic-report
