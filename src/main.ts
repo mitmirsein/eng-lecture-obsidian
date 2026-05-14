@@ -21,6 +21,13 @@ export default class MosaicLecturePlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    
+    // 이전 설정 마이그레이션 (Mosaic/outputs -> Mosaic_Eng/Outputs)
+    if (this.settings.outputRoot === "Mosaic/outputs" || this.settings.outputRoot === "Mosaic_Eng") {
+      this.settings.outputRoot = "Mosaic_Eng/Outputs";
+      await this.saveSettings();
+    }
+
     await this.ensureFolder(this.settings.outputRoot);
     this.addSettingTab(new MosaicSettingTab(this.app, this));
 
