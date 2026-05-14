@@ -32,15 +32,5 @@ Mosaic 커리큘럼 파이프라인의 Obsidian 네이티브 패키징 트랙입
 
 ---
 
-## 🛠️ 개발 가이드
-
-### 빌드
-```bash
-npm install
-npm run build
-```
-
-빌드 결과물(`main.js`, `manifest.json`, `styles.css`)은 저장소 루트에 커밋되어야 BRAT을 통해 정상적으로 설치됩니다.
-
 ### 라이선스
 Mosaic Curriculum Pipeline
