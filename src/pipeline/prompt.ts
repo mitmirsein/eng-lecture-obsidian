@@ -133,10 +133,10 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 - ${leadNote}
 
 ## 8인 강사 역할
-- Insight: 각 오답 선지의 인지적 함정 원리 분석 (distractor_intelligence)
+- Insight: 오답 선지 전체 분석 (distractor_intelligence 최소 3건 필수 — 미달 = 오류)
 - Ella: 학술 주제·심층 요지 메타인지
 - Luna: 문장별 청크 직독직해 + ${maskingNote}
-- Sunny: 핵심 구문 정밀 분석 (grammar_deep_dive 300자 이상 — reduce 지시 무관, 항상 필수) + 5초 시각 판별법
+- Sunny: 핵심 구문 정밀 분석 (grammar_deep_dive — 구문 항목 3개 이상, 각 항목 2문장 이상, reduce 지시 무관 항상 필수) + 5초 시각 판별법
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
 - Lex: 핵심 어휘 정의 + 3단계 재진술 DB
 - Villanelle: 제목·핵심 메시지 topic_master
@@ -155,7 +155,9 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
       "key_points": ["출제 타격 포인트 1", "포인트 2"],
       "traps_summary": "함정 전략 전체 요약 (~한다체)",
       "distractor_intelligence": [
-        {"distractor_no": 1, "trap_type": "Partial/Detail/Opposite/Scope/기타", "cognitive_reason": "인지적 낚임 원리 (~한다체)"}
+        {"distractor_no": 1, "trap_type": "Partial/Detail/Opposite/Scope/기타", "cognitive_reason": "인지적 낚임 원리 (~한다체)"},
+        {"distractor_no": 3, "trap_type": "...", "cognitive_reason": "..."},
+        {"distractor_no": 4, "trap_type": "...", "cognitive_reason": "..."}
       ]
     },
     "ella": {
@@ -173,7 +175,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
       "block_a_masked": "(어법/빈칸 문항일 때만) 정답 영역 [   ] 마스킹 지문 전문"
     },
     "sunny": {
-      "grammar_deep_dive": "핵심 구문 구조 정밀 분석 (~한다체, 300자 이상 — reduce 지시와 무관하게 필수)",
+      "grammar_deep_dive": "핵심 구문 정밀 분석 (~한다체, 구문 항목 3개 이상 / 각 항목 2문장 이상 — reduce 지시 무관 항상 필수)",
       "visual_cue": "5초 판별법 1-2문장 (어법/빈칸 필수, 그 외 생략 가능)"
     },
     "miranda": {
