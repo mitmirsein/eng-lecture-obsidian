@@ -1,3 +1,23 @@
+export type ProblemType = "어법_선택형" | "어법_서술형" | "빈칸추론" | "내용일치" | "순서삽입" | "기타";
+export type TargetGrade = "중등" | "고등" | "Ambiguous";
+export type InstructorName = "Insight" | "Ella" | "Miranda" | "Luna" | "Sunny" | "Lex" | "Villanelle" | "Quill";
+
+export interface TriageResult {
+  problem_type: ProblemType;
+  target_grade: TargetGrade;
+  trap_frame: string;
+  persona_priority: {
+    lead: InstructorName[];
+    reduce: InstructorName[];
+  };
+  anomalies: Array<{
+    type: "출제_의도" | "원문_결함";
+    expression: string;
+    note: string;
+  }>;
+  confidence: number;
+}
+
 export interface MosaicSettings {
   provider: string;
   endpoint: string;
@@ -29,5 +49,6 @@ export interface GenerationOutput {
     topic?: string;
     correct_answer?: string;
   };
+  triage?: TriageResult;
   raw: unknown;
 }
