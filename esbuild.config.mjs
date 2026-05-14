@@ -6,7 +6,7 @@ const prod = process.argv[2] === "production";
 
 const context = await esbuild.context({
   banner: {
-    js: "/* Mosaic Lecture Obsidian */",
+    js: "/* Mosaic Eng Lecture Obsidian */",
   },
   entryPoints: ["src/main.ts"],
   bundle: true,
@@ -41,4 +41,3 @@ if (prod) {
 } else {
   await context.watch();
 }
-

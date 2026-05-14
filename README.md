@@ -1,4 +1,4 @@
-# Mosaic Lecture Obsidian
+# Mosaic Eng Lecture Obsidian
 
 Obsidian-native packaging track for the Mosaic Curriculum Pipeline.
 
@@ -54,7 +54,7 @@ Build output:
 For local testing, copy or symlink this folder into:
 
 ```text
-<Vault>/.obsidian/plugins/mosaic-lecture/
+<Vault>/.obsidian/plugins/mosaic-eng-lecture/
 ```
 
 ## BRAT Install
@@ -71,8 +71,8 @@ After the private GitHub repository is available:
 1. Install and enable the Obsidian BRAT plugin.
 2. Open BRAT settings.
 3. Choose `Add Beta plugin`.
-4. Enter the GitHub repository path, for example `owner/mosaic-lecture`.
-5. Enable `Mosaic Lecture` in Community plugins.
+4. Enter the GitHub repository path, for example `owner/mosaic-eng-lecture-obsidian`.
+5. Enable `Mosaic Eng Lecture` in Community plugins.
 
 For a private repository, BRAT/GitHub access must be configured on the user's
 machine. If BRAT cannot read the private repo, use a temporary private-to-public
