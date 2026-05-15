@@ -20,33 +20,20 @@ async function callLLM(
   userPrompt: string,
   maxTokens = 8192,
 ): Promise<string> {
-  const isAnthropic = settings.provider === "claude";
+
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (isAnthropic) {
-    headers["x-api-key"] = settings.apiKey;
-    headers["anthropic-version"] = "2023-06-01";
-  } else {
-    headers["Authorization"] = `Bearer ${settings.apiKey}`;
-  }
+  headers["Authorization"] = `Bearer ${settings.apiKey}`;
 
-  const body = isAnthropic
-    ? {
-        model: settings.model,
-        messages: [{ role: "user", content: userPrompt }],
-        max_tokens: maxTokens,
-        system: systemPrompt,
-        temperature: 0.1,
-      }
-    : {
-        model: settings.model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.1,
-        max_tokens: maxTokens,
-      };
+  const body = {
+    model: settings.model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.1,
+    max_tokens: maxTokens,
+  };
 
   const response = await requestUrl({
     url: settings.endpoint,
@@ -61,9 +48,7 @@ async function callLLM(
   }
 
   const data = response.json;
-  const content: string | undefined = isAnthropic
-    ? data?.content?.[0]?.text
-    : data?.choices?.[0]?.message?.content;
+  const content: string | undefined = data?.choices?.[0]?.message?.content;
 
   if (typeof content !== "string") throw new Error("LLM response has no message content.");
   return content;

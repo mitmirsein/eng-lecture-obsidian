@@ -24,11 +24,7 @@ const PROVIDER_CONFIGS: Record<string, { name: string; endpoint: string; models:
     endpoint: "https://api.openai.com/v1/chat/completions",
     models: ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini"],
   },
-  claude: {
-    name: "Claude",
-    endpoint: "https://api.anthropic.com/v1/messages",
-    models: ["claude-4-7-opus", "claude-4-6-sonnet", "claude-4-5-haiku"],
-  },
+
   gemini: {
     name: "Gemini",
     endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",

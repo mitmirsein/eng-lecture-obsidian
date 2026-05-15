@@ -20,7 +20,7 @@ Mosaic 커리큘럼 파이프라인의 Obsidian 네이티브 패키징 트랙입
 - **스마트 파싱(Smart Ingest)**: 지문을 복붙만 하면 AI가 유형, 주제, 레벨을 파악하고 YAML을 자동 업데이트합니다.
 - **포렌식 통합 교안 생성**: 8인의 전문 AI 페르소나가 분석한 고품질 강의 자산(MOSAIC)을 생성합니다.
 - **직관적인 UI**: 사이드바 아이콘 및 마우스 우클릭 메뉴를 통해 즉시 실행할 수 있습니다.
-- **멀티 모델 지원**: OpenAI, Claude, Gemini, Grok 등 최신 LLM을 지원합니다.
+- **멀티 모델 지원**: OpenAI, Gemini, Grok 등 최신 LLM을 지원합니다.
 - **보안**: API 키는 Obsidian의 `app.secretStorage`를 통해 안전하게 저장됩니다.
 
 ## 🚀 사용 방법
