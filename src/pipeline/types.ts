@@ -16,6 +16,12 @@ export interface TriageResult {
     note: string;
   }>;
   confidence: number;
+  /** LLM이 문제 난이도·어휘·구문 복잡도를 기반으로 추론한 레벨 */
+  inferred_level?: string;
+  /** LLM이 문제 특성을 기반으로 추론한 대상 학년 */
+  inferred_target_grade?: TargetGrade;
+  /** 레벨/학년 추론의 근거 요약 (1~2문장) */
+  level_rationale?: string;
 }
 
 export interface MosaicSettings {

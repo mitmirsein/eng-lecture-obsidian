@@ -87,6 +87,9 @@ export async function runTriage(
       return undefined;
     }
     console.log(`Mosaic [Triage]: ${parsed.problem_type} | confidence=${parsed.confidence ?? "?"}`);
+    if (parsed.inferred_level) {
+      console.log(`Mosaic [Triage]: 세팅 레벨=${input.level} → LLM 추론=${parsed.inferred_level} (${parsed.level_rationale ?? ""})`);
+    }
     return {
       problem_type: parsed.problem_type,
       target_grade: parsed.target_grade ?? "Ambiguous",
@@ -94,6 +97,9 @@ export async function runTriage(
       persona_priority: parsed.persona_priority,
       anomalies: parsed.anomalies ?? [],
       confidence: parsed.confidence ?? 0.6,
+      inferred_level: parsed.inferred_level,
+      inferred_target_grade: parsed.inferred_target_grade,
+      level_rationale: parsed.level_rationale,
     };
   } catch (err) {
     console.warn("Mosaic [Triage]: 실패 — 기본값으로 계속", err);

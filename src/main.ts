@@ -424,6 +424,10 @@ export default class MosaicLecturePlugin extends Plugin {
           if (result.metadata?.level && (!fm["level"] || fm["level"] === "H1")) fm["level"] = result.metadata.level;
           if (result.metadata?.topic) fm["topic"] = result.metadata.topic;
           if (result.metadata?.correct_answer) fm["correct_answer"] = result.metadata.correct_answer;
+          // LLM 추론 레벨/학년을 별도 필드로 기록
+          if (result.triage?.inferred_level) fm["inferred_level"] = result.triage.inferred_level;
+          if (result.triage?.inferred_target_grade) fm["inferred_target_grade"] = result.triage.inferred_target_grade;
+          if (result.triage?.level_rationale) fm["level_rationale"] = result.triage.level_rationale;
         });
       }
 
@@ -447,13 +451,30 @@ export default class MosaicLecturePlugin extends Plugin {
         new Notice(`Mosaic: ⚠️ Audit ${result.auditResult.score}/100 — 품질 기준 미달 (80점 미만). run-report.md 확인.`);
       }
 
+      // 세팅 vs LLM 추론 레벨 불일치 경고
+      const inferredLevel = result.triage?.inferred_level;
+      const inferredGrade = result.triage?.inferred_target_grade;
+      const levelMismatch = inferredLevel && inferredLevel.toUpperCase() !== level.toUpperCase();
+      const gradeMismatch = inferredGrade && inferredGrade !== targetGrade && inferredGrade !== "Ambiguous";
+      if (levelMismatch || gradeMismatch) {
+        const parts = [];
+        if (levelMismatch) parts.push(`레벨: 세팅=${level} → LLM 추론=${inferredLevel}`);
+        if (gradeMismatch) parts.push(`학년: 세팅=${targetGrade} → LLM 추론=${inferredGrade}`);
+        new Notice(`Mosaic: ⚠️ 레벨 불일치 감지!\n${parts.join("\n")}\nrun-report.md에서 상세 확인.`, 8000);
+      }
+
       const auditSection = result.auditResult
         ? `\n## Audit (${result.auditResult.score}/100 — ${result.auditResult.pass ? "✅ PASS" : "❌ FAIL"})\n` +
           result.auditResult.items.map(i => `- **${i.item}** (${i.score}점): ${i.status}`).join("\n")
         : "";
 
+      // 레벨 추론 병기 섹션
+      const levelSection = result.triage
+        ? `\n## 레벨 분석 (세팅 vs LLM 추론)\n| | 세팅 값 | LLM 추론 | 일치 |\n|---|---|---|---|\n| **레벨** | ${level} | ${result.triage.inferred_level ?? "N/A"} | ${!levelMismatch ? "✅" : "⚠️ 불일치"} |\n| **대상 학년** | ${targetGrade} | ${result.triage.inferred_target_grade ?? "N/A"} | ${!gradeMismatch ? "✅" : "⚠️ 불일치"} |\n${result.triage.level_rationale ? `\n> **LLM 추론 근거:** ${result.triage.level_rationale}` : ""}`
+        : "";
+
       const triageSection = result.triage
-        ? `\n## Pipeline\n- **모드**: ${pipelineMode}\n\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}${auditSection}`
+        ? `\n## Pipeline\n- **모드**: ${pipelineMode}\n\n## Triage\n- **유형**: ${result.triage.problem_type}\n- **함정 프레임**: ${result.triage.trap_frame}\n- **리드 페르소나**: ${result.triage.persona_priority.lead.join(", ")}\n- **신뢰도**: ${result.triage.confidence}${levelSection}${auditSection}`
         : `\n## Pipeline\n- **모드**: ${pipelineMode}${auditSection}`;
 
       const reportMd = `---

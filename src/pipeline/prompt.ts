@@ -23,17 +23,32 @@ export function buildTriagePrompt(input: GenerationInput): string {
 - 어법 문항 밑줄 영역 내 비문 → type: "출제_의도"
 - 그 외 비표준 용법 → type: "원문_결함", note를 ⚠️로 시작
 
+## 레벨 자체 추론 (inferred_level / inferred_target_grade)
+사용자의 세팅 값(레벨 힌트, 학년 힌트)과는 별도로, 지문과 문항의 실제 내용을 분석하여 레벨과 대상 학년을 독자적으로 추론한다.
+추론 근거:
+1. 어휘 난이도 (고빈도 일상어 vs 저빈도 학술어)
+2. 구문 복잡도 (단문/중문 비율, 종속절 깊이, 삽입구 빈도)
+3. 지문 길이 및 선지 구성의 정교함
+4. 출처 단서 (수능, 모의고사, 교육청, 내신 등의 출처 표시가 있으면 참고)
+5. 추상적 사고 요구 수준
+
+결과를 inferred_level (M1~M3, H1~H3), inferred_target_grade (중등/고등), level_rationale (1~2문장 근거)로 반환한다.
+
 ## 반환 JSON (additionalProperties 금지)
 {
   "problem_type": "어법_선택형" | "어법_서술형" | "빈칸추론" | "내용일치" | "순서삽입" | "주제_제목_요지" | "기타",
   "target_grade": "중등" | "고등" | "Ambiguous",
+  "inferred_level": "M1" | "M2" | "M3" | "H1" | "H2" | "H3",
+  "inferred_target_grade": "중등" | "고등" | "Ambiguous",
+  "level_rationale": "추론 근거 1~2문장",
   "trap_frame": "(위 표 해당 행 값 그대로)",
   "persona_priority": { "lead": ["..."], "reduce": ["..."] },
   "anomalies": [],
   "confidence": 0.0
 }
 
-레벨 힌트: ${input.level} | 학년 힌트: ${input.targetGrade}
+사용자 세팅 — 레벨 힌트: ${input.level} | 학년 힌트: ${input.targetGrade}
+(위 힌트는 참고용이다. 실제 문항 분석에 기반한 독자적 추론 결과를 inferred_level/inferred_target_grade에 기록한다.)
 
 원문:
 ${input.sourceText}
@@ -82,7 +97,8 @@ title: "지문ID 포렌식 교안"
 ---
 
 # 📖 **지문ID**
-> **Mosaic Academy** 영어과 | **레벨:** Level | **대상:** Grade
+> **Mosaic Academy** 영어과 | **세팅 레벨:** Level | **세팅 대상:** Grade
+> **LLM 추론 레벨:** InferredLevel | **LLM 추론 대상:** InferredGrade | **근거:** Rationale
 
 ---
 
@@ -267,7 +283,8 @@ title: "지문ID 포렌식 교안"
 ---
 
 # 📖 **지문ID**
-> **Mosaic Academy** 영어과 | **레벨:** Level | **대상:** Grade
+> **Mosaic Academy** 영어과 | **세팅 레벨:** ${input.level} | **세팅 대상:** ${input.targetGrade}
+> **LLM 추론 레벨:** ${triage?.inferred_level ?? input.level} | **LLM 추론 대상:** ${triage?.inferred_target_grade ?? input.targetGrade}${triage?.level_rationale ? ` | **근거:** ${triage.level_rationale}` : ""}
 
 ---
 
