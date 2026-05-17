@@ -5,6 +5,7 @@ import { basename, dirname } from "path";
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { API_KEY_SECRET_ID, DEFAULT_SETTINGS, MosaicSettingTab } from "./settings";
 import { generateLectureAssets } from "./pipeline/openaiCompatible";
+import { runPreflight } from "./pipeline/preflight";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
 import { ProgressModal } from "./ui/ProgressModal";
 import pretendardRegularDataUrl from "../assets/fonts/pretendard/Pretendard-Regular.otf";
@@ -388,6 +389,20 @@ export default class MosaicLecturePlugin extends Plugin {
       level,
       targetGrade,
     };
+
+    // ── Pre-flight Ambiguity Gate (v0.5) ──────────────────────────
+    const preflight = runPreflight(sourceText, level, targetGrade);
+    preflight.warnings.forEach(w => console.warn(`Mosaic [Pre-flight] ⚠️ ${w}`));
+    if (!preflight.pass) {
+      const errorMsg = preflight.errors.join("\n");
+      new Notice(`Mosaic: ❌ Pre-flight 차단\n${errorMsg}`, 10000);
+      console.error("Mosaic [Pre-flight]: BLOCKED", preflight.errors);
+      return;
+    }
+    if (preflight.warnings.length > 0) {
+      new Notice(`Mosaic: ⚠️ Pre-flight 경고 ${preflight.warnings.length}건 (콘솔 확인)`, 5000);
+    }
+    // ──────────────────────────────────────────────────────────────
 
     await this.ensureFolder(folder);
     await this.upsertText(`${folder}/source.md`, sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`);
