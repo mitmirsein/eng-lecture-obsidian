@@ -101,6 +101,8 @@ export interface DenseBundle {
     };
     quill: {
       writing_tasks: Array<{ q: string; a: string; a_ko: string }>;
+      /** 초보 자습용 내용 확인 Q&A (국문 질문/답 + 근거 지문 문장) */
+      comprehension_qa: Array<{ q_ko: string; a_ko: string; evidence: string }>;
     };
   };
 }

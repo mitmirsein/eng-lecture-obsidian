@@ -156,7 +156,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
 - Lex: 핵심 어휘 정의(최소 10개) + 3단계 재진술 DB + 간단 단어 테스트(vocab_quiz, 최소 8문항)
 - Villanelle: 제목·핵심 메시지 topic_master
-- Quill: 서술형 영작 과제 (Q→A→한국어)
+- Quill: 서술형 영작 과제 (Q→A→한국어) + 내용 확인 Q&A (comprehension_qa, 최소 4문항)
 
 ## 반환 JSON 스키마
 {
@@ -236,6 +236,9 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
     "quill": {
       "writing_tasks": [
         {"q": "영어 발문", "a": "모범 영어 답안", "a_ko": "한국어 해석"}
+      ],
+      "comprehension_qa": [
+        {"q_ko": "지문 내용 이해를 점검하는 한국어 질문 (초보가 스스로 풀 수 있는 사실·추론 확인, 최소 4문항)", "a_ko": "한국어 모범 답", "evidence": "근거가 되는 지문 영어 원문 문장"}
       ]
     }
   }
@@ -390,6 +393,12 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 > (villanelle.topic_master.core_message 인용구)
 
 (quill.writing_tasks → **Q{n}.** q / **Answer:** a / **Interpretation:** a_ko 형식)
+
+### **❓ 내용 확인 Q&A (자가 점검)**
+(quill.comprehension_qa 전체 → **Q{n}.** q_ko 형식으로 질문만 먼저 나열. 답은 여기 쓰지 않는다)
+
+> [!question]- 모범 답 및 근거 (펼치기)
+> (quill.comprehension_qa 전체 → **{n}.** a_ko — 근거: evidence 형식. 문항 수와 답 수 일치 필수)
 
 ---
 
