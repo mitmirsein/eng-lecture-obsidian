@@ -151,7 +151,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 ## 8인 강사 역할
 - Insight: 오답 선지 전체 분석 (distractor_intelligence 최소 3건 필수 — 미달 = 오류)
 - Ella: 학술 주제·심층 요지 메타인지
-- Luna: 문장별 청크 직독직해 + ${maskingNote}
+- Luna: 문장별 청크 직독직해 + 전체 통독 해석(full_translation) + ${maskingNote}
 - Sunny: 핵심 구문 정밀 분석 (grammar_deep_dive — 구문 항목 3개 이상, 각 항목 2문장 이상, reduce 지시 무관 항상 필수) + 5초 시각 판별법
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
 - Lex: 핵심 어휘 정의 + 3단계 재진술 DB
@@ -186,6 +186,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
       "chunks": [
         {"sentence_idx": 1, "chunk_text": "끊어읽기 단위 원문", "literal_translation": "직역 한국어"}
       ],
+      "full_translation": "지문 전체를 끊어읽기 기호 없이 자연스러운 한국어로 통독 번역 (초보 학생이 해석만 따로 읽을 수 있도록 매끄러운 문장체, 직역 아님, 문단 구조 유지)",
       "topic_sentence": {"sentence_idx": 1, "text": "주제문 원문"},
       "summary": "전체 요약 (~한다체)",
       "block_a_masked": "(어법/빈칸 문항일 때만) 정답 영역 [   ] 마스킹 지문 전문"
@@ -324,7 +325,10 @@ ${isMaskingTarget ? "(bundle.instructors.luna.block_a_masked 사용)" : "(bundle
 
 ---
 
-## 03. 루나: 직독직해 (전체 복원)
+## 03. 루나: 해석
+### **📖 전체 해석 (한국어 통독)**
+(luna.full_translation 값 그대로 — 끊어읽기 기호·원문 혼용 없이 한국어 문단만. 초보 학생이 해석만 따로 읽는 용도)
+### **🔍 직독직해 (문장별 정밀)**
 (luna.chunks 전체 → **[S{n}]** chunk_text (literal_translation) 형식. 문장 누락 금지)
 
 ---

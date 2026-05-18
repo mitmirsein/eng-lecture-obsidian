@@ -70,6 +70,8 @@ export interface DenseBundle {
     };
     luna: {
       chunks: Array<{ sentence_idx: number; chunk_text: string; literal_translation: string }>;
+      /** 끊어읽기 기호 없이 통독 가능한 자연스러운 한국어 전체 해석 (초보 자습용) */
+      full_translation: string;
       topic_sentence: { sentence_idx: number; text: string };
       summary: string;
       block_a_masked?: string;
