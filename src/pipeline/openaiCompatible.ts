@@ -19,6 +19,7 @@ async function callLLM(
   systemPrompt: string,
   userPrompt: string,
   maxTokens = 8192,
+  label = "LLM",
 ): Promise<string> {
 
 
@@ -50,6 +51,20 @@ async function callLLM(
   const data = response.json;
   const content: string | undefined = data?.choices?.[0]?.message?.content;
 
+  const u = data?.usage;
+  if (u) {
+    const prompt = u.prompt_tokens ?? "?";
+    const completion = u.completion_tokens ?? "?";
+    const total = u.total_tokens ?? "?";
+    const capHit = typeof u.completion_tokens === "number" && u.completion_tokens >= maxTokens;
+    console.log(
+      `Mosaic [${label}]: 토큰 usage — prompt=${prompt} completion=${completion} total=${total} (cap=${maxTokens})` +
+      (capHit ? " ⚠️ 출력이 상한에 도달 — 절단 가능성. Max output tokens 상향 검토." : ""),
+    );
+  } else {
+    console.log(`Mosaic [${label}]: usage 정보 없음 (cap=${maxTokens})`);
+  }
+
   if (typeof content !== "string") throw new Error("LLM response has no message content.");
   return content;
 }
@@ -65,6 +80,7 @@ export async function runTriage(
       "Return only valid JSON. Do not wrap the response in Markdown fences.",
       buildTriagePrompt(input),
       1024,
+      "Triage",
     );
     const parsed = extractJson(content) as Partial<TriageResult>;
     if (!parsed.problem_type || !parsed.trap_frame || !parsed.persona_priority) {
@@ -103,7 +119,8 @@ async function runDenseAnalysis(
       settings,
       "Return only valid JSON. Do not wrap the response in Markdown fences.",
       buildDenseAnalysisPrompt(input, triage),
-      16384,
+      settings.maxTokens,
+      "Dense",
     );
     const parsed = extractJson(content) as Partial<DenseBundle>;
     if (!parsed.block_a || !parsed.instructors) {
@@ -142,7 +159,8 @@ async function runKMaster(
     settings,
     "Return only valid JSON. Do not wrap the response in Markdown fences.",
     buildKMasterPrompt(input, triage, bundle),
-    8192,
+    settings.maxTokens,
+    "K-Master",
   );
   const parsed = extractJson(content) as Partial<GenerationOutput & { kmaster_meta: KMasterMeta }>;
   if (typeof parsed.masterMarkdown !== "string") {
@@ -192,7 +210,8 @@ export async function generateLectureAssets(
     settings,
     "Return only valid JSON. Do not wrap the response in Markdown fences.",
     buildGenerationPrompt(input, triage),
-    8192,
+    settings.maxTokens,
+    "Fallback",
   );
   const parsed = extractJson(content) as Partial<GenerationOutput>;
   if (typeof parsed.masterMarkdown !== "string") {

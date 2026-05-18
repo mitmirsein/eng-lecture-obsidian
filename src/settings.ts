@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: MosaicSettings = {
   outputRoot: "Mosaic_Eng/Outputs",
   defaultLevel: "H1",
   defaultTargetGrade: "고등",
+  maxTokens: 32768,
   generatePdf: true,
   pandocPath: "",
   xelatexPath: "",
@@ -168,6 +169,25 @@ export class MosaicSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         });
     });
+
+    new Setting(containerEl)
+      .setName("Max output tokens")
+      .setDesc(
+        "무거운 LLM 호출(Dense 분석·K-Master·fallback)의 출력 토큰 상한. " +
+        "낮으면 교안이 잘리거나 분석이 단일호출로 강등된다. 모델 한도와 비용 예산에 맞춰 조정한다. (기본 32768)",
+      )
+      .addText((text) => {
+        text.inputEl.type = "number";
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.maxTokens))
+          .setValue(String(this.plugin.settings.maxTokens))
+          .onChange(async (value) => {
+            const n = parseInt(value, 10);
+            this.plugin.settings.maxTokens =
+              Number.isFinite(n) && n >= 1024 ? n : DEFAULT_SETTINGS.maxTokens;
+            await this.plugin.saveSettings();
+          });
+      });
 
     section(
       containerEl,

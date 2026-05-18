@@ -32,6 +32,8 @@ export interface MosaicSettings {
   outputRoot: string;
   defaultLevel: string;
   defaultTargetGrade: string;
+  /** 무거운 LLM 호출(Dense·K-Master·fallback)의 출력 토큰 상한. Triage는 별도 고정. */
+  maxTokens: number;
   generatePdf: boolean;
   pandocPath: string;
   xelatexPath: string;
