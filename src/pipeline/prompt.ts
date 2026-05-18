@@ -318,10 +318,17 @@ ${isMaskingTarget ? "(bundle.instructors.luna.block_a_masked 사용)" : "(bundle
 - **국문 주제:** ella.theme_ko 값 그대로
 - **영문 주제:** ella.theme_en 값 그대로
 - **심층 요지:** ella.main_idea_ko 값 그대로
-### **🧩 논리 구조 및 응집성**
+### **🗺️ 구조 시각화 본문 (논리 라벨)**
+(luna.chunks를 sentence_idx 기준으로 이어붙여 각 문장을 복원한 뒤,
+miranda.labeled_sentences의 동일 sentence_idx logic_label을
+**[라벨]** 배지로 문장 앞에 붙여 한 문장당 한 줄로 출력한다.
+해당 connector가 "없음"이 아니면 배지 뒤에 (연결어: X)를 병기한다.
+모든 문장을 빠짐없이 출력 — 눈으로 글의 뼈대가 한 번에 보이도록 한다.
+예: **[주제문]** Boredom is not merely ... / **[근거]** (연결어: For example) Studies show ...)
+> **논리 경로:** (miranda.logic_route)
+### **🧩 응집성 결속 분석**
 | 문장 쌍 | 연결 방식 | 핵심 단어 | 논리적 결속 원리 |
 (miranda.cohesion_bridges 전체 → 표. 최소 3행 필수 — 행 누락 = 오류)
-> **논리 경로:** (miranda.logic_route)
 
 ---
 
