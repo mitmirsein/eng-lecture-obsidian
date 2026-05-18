@@ -154,7 +154,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 - Luna: 문장별 청크 직독직해 + 전체 통독 해석(full_translation) + ${maskingNote}
 - Sunny: 핵심 구문 정밀 분석 (grammar_points — 구문 항목 3개 이상, 각 항목 정의 3문장 이상·예문 2개 이상, reduce 지시 무관 항상 필수) + 5초 시각 판별법
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
-- Lex: 핵심 어휘 정의 + 3단계 재진술 DB
+- Lex: 핵심 어휘 정의(최소 10개) + 3단계 재진술 DB + 간단 단어 테스트(vocab_quiz, 최소 8문항)
 - Villanelle: 제목·핵심 메시지 topic_master
 - Quill: 서술형 영작 과제 (Q→A→한국어)
 
@@ -218,13 +218,16 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
     },
     "lex": {
       "vocabulary_entries": [
-        {"word": "원형1", "pos": "n.", "definition": "영영 정의", "korean": "한국어 뜻"},
+        {"word": "원형 (지문 핵심어 최소 10개 — 배열 길이 10 이상 필수)", "pos": "n./v./adj. 등", "definition": "영영 정의", "korean": "한국어 뜻"},
         {"word": "원형2", "pos": "v.", "definition": "영영 정의", "korean": "한국어 뜻"},
         {"word": "원형3", "pos": "adj.", "definition": "영영 정의", "korean": "한국어 뜻"}
       ],
       "paraphrase_layers": [
         {"keyword": "핵심어1", "synonyms": ["동의어1", "동의어2"], "contextual_equivalents": ["문맥 대체어1"], "antonym_negation": "반의어 부정"},
         {"keyword": "핵심어2", "synonyms": ["동의어1"], "contextual_equivalents": ["문맥 대체어1", "문맥 대체어2"], "antonym_negation": "반의어 부정"}
+      ],
+      "vocab_quiz": [
+        {"question": "빈칸 문장 또는 영영 정의 (예: The scientist tried to ___ the data. / to make something clear)", "answer": "정답 단어 (vocabulary_entries에서 출제, 최소 8문항)"}
       ]
     },
     "villanelle": {
@@ -367,11 +370,18 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 ---
 
 ## 05. 렉스: 어휘 및 재진술 레이어
-### **[핵심 어휘]**
-(lex.vocabulary_entries 전체 → **word** (pos): definition — korean 형식. 누락 금지)
+### **[핵심 어휘]** (10개 이상)
+| # | 단어 | 품사 | 영영 정의 | 한국어 뜻 |
+|---|---|---|---|---|
+(lex.vocabulary_entries 전체를 번호와 함께 표로 출력 — 10개 이상, 항목 누락 = 오류)
 ### **🔄 3단계 재진술 DB**
 | 키워드 | 동의어 | 문맥적 대체어 | 반의어 부정 |
 (lex.paraphrase_layers 전체 → 표. 최소 2행 필수. synonyms·contextual_equivalents 배열 값은 " / " 구분으로 셀 안에 나열 — JSON 대괄호 그대로 출력 금지. 행 누락 = 오류)
+### **✏️ 어휘 셀프 테스트**
+(lex.vocab_quiz 전체 → **Q{n}.** question 형식으로 문제만 먼저 나열. 정답은 여기 쓰지 않는다)
+
+> [!note]- 정답 확인 (펼치기)
+> (lex.vocab_quiz 전체 → {n}. answer 형식. 문항 수와 정답 수 일치 필수)
 
 ---
 

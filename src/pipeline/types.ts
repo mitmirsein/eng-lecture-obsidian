@@ -93,6 +93,8 @@ export interface DenseBundle {
     lex: {
       vocabulary_entries: Array<{ word: string; pos?: string; definition: string; korean: string }>;
       paraphrase_layers: Array<{ keyword: string; synonyms: string[]; contextual_equivalents: string[]; antonym_negation: string }>;
+      /** 초보 자습용 간단 단어 테스트 (빈칸 문장 또는 영영 정의 → 정답 단어) */
+      vocab_quiz: Array<{ question: string; answer: string }>;
     };
     villanelle: {
       topic_master: { title_ko: string; core_message: string };

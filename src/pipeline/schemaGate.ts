@@ -36,6 +36,7 @@ export function runSchemaGate(bundle: DenseBundle): SchemaViolation[] {
   check("miranda.cohesion_bridges",        inst.miranda?.cohesion_bridges,        "array");
   check("lex.vocabulary_entries",          inst.lex?.vocabulary_entries,          "non-empty array");
   check("lex.paraphrase_layers",           inst.lex?.paraphrase_layers,           "array");
+  check("lex.vocab_quiz",                  inst.lex?.vocab_quiz,                  "non-empty array");
   check("luna.chunks",                     inst.luna?.chunks,                     "non-empty array");
   check("luna.full_translation",           inst.luna?.full_translation,           "non-empty string");
   check("sunny.grammar_points",            inst.sunny?.grammar_points,            "non-empty array");
