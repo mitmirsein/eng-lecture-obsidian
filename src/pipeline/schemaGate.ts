@@ -38,7 +38,7 @@ export function runSchemaGate(bundle: DenseBundle): SchemaViolation[] {
   check("lex.paraphrase_layers",           inst.lex?.paraphrase_layers,           "array");
   check("luna.chunks",                     inst.luna?.chunks,                     "non-empty array");
   check("luna.full_translation",           inst.luna?.full_translation,           "non-empty string");
-  check("sunny.grammar_deep_dive",         inst.sunny?.grammar_deep_dive,         "non-empty string");
+  check("sunny.grammar_points",            inst.sunny?.grammar_points,            "non-empty array");
   check("ella.theme_ko",                   inst.ella?.theme_ko,                   "non-empty string");
   check("ella.main_idea_ko",               inst.ella?.main_idea_ko,               "non-empty string");
 

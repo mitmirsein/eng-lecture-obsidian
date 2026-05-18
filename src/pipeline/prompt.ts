@@ -152,7 +152,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 - Insight: 오답 선지 전체 분석 (distractor_intelligence 최소 3건 필수 — 미달 = 오류)
 - Ella: 학술 주제·심층 요지 메타인지
 - Luna: 문장별 청크 직독직해 + 전체 통독 해석(full_translation) + ${maskingNote}
-- Sunny: 핵심 구문 정밀 분석 (grammar_deep_dive — 구문 항목 3개 이상, 각 항목 2문장 이상, reduce 지시 무관 항상 필수) + 5초 시각 판별법
+- Sunny: 핵심 구문 정밀 분석 (grammar_points — 구문 항목 3개 이상, 각 항목 정의 3문장 이상·예문 2개 이상, reduce 지시 무관 항상 필수) + 5초 시각 판별법
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
 - Lex: 핵심 어휘 정의 + 3단계 재진술 DB
 - Villanelle: 제목·핵심 메시지 topic_master
@@ -192,7 +192,17 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
       "block_a_masked": "(어법/빈칸 문항일 때만) 정답 영역 [   ] 마스킹 지문 전문"
     },
     "sunny": {
-      "grammar_deep_dive": "핵심 구문 정밀 분석 (~한다체, 구문 항목 3개 이상 / 각 항목 2문장 이상 — reduce 지시 무관 항상 필수)",
+      "grammar_points": [
+        {
+          "concept": "문법 개념명 (예: 분사구문, 도치, 관계대명사 계속적 용법)",
+          "definition": "이 문법의 정의·작동 원리를 초보 학생도 이해하도록 3문장 이상 상세히 (~한다체)",
+          "why_here": "이 지문 문장에서 왜 이 구조가 쓰였는지와 해석 시 주의점 (~한다체)",
+          "examples": [
+            {"en": "지문 원문에서 발췌한 해당 구조 예문", "ko": "한국어 해석"},
+            {"en": "같은 구조의 더 쉬운 응용 예문 (학습용 창작)", "ko": "한국어 해석"}
+          ]
+        }
+      ],
       "visual_cue": "5초 판별법 1-2문장 (어법/빈칸 필수, 그 외 생략 가능)"
     },
     "miranda": {
@@ -341,7 +351,17 @@ miranda.labeled_sentences의 동일 sentence_idx logic_label을
 ---
 
 ## 04. 써니: 구문 정밀 해부
-(sunny.grammar_deep_dive — 구조 항목별로 소제목 분리 권장)
+(sunny.grammar_points 전체를 항목별로 렌더 — 항목 누락 = 오류. 각 항목 형식:)
+### **▸ {concept}**
+**정의:** {definition}
+**이 지문에서:** {why_here}
+
+| 구분 | 예문 (English) | 해석 (한국어) |
+|---|---|---|
+| 원문 | examples[0].en | examples[0].ko |
+| 응용 | examples[1].en | examples[1].ko |
+
+(examples가 2개 초과면 행을 추가해 모두 출력. en/ko 누락 금지)
 ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 
 ---

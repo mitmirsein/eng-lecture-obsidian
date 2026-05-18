@@ -77,7 +77,12 @@ export interface DenseBundle {
       block_a_masked?: string;
     };
     sunny: {
-      grammar_deep_dive: string;
+      grammar_points: Array<{
+        concept: string;
+        definition: string;
+        why_here: string;
+        examples: Array<{ en: string; ko: string }>;
+      }>;
       visual_cue?: string;
     };
     miranda: {

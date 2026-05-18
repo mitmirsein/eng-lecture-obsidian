@@ -84,11 +84,18 @@ export function runForensicAudit(
   };
   checkKorean("ella",  "theme_ko",         inst.ella?.theme_ko);
   checkKorean("ella",  "main_idea_ko",      inst.ella?.main_idea_ko);
-  // grammar_deep_dive는 영문 구문 인용이 정상적으로 포함되므로 한글 비율 대신 길이로 체크
-  const sunnyText = inst.sunny?.grammar_deep_dive ?? "";
-  if (sunnyText.length < 100) {
+  // grammar_points: 구문 항목 수(3개 이상)와 정의 분량으로 체크 (영문 예문 포함이라 한글 비율 부적합)
+  const grammarPoints = inst.sunny?.grammar_points ?? [];
+  const sunnyText = grammarPoints
+    .map(g => `${g.concept ?? ""} ${g.definition ?? ""} ${g.why_here ?? ""} ` +
+      (g.examples ?? []).map(e => `${e.en ?? ""} ${e.ko ?? ""}`).join(" "))
+    .join(" ");
+  if (grammarPoints.length < 3) {
     p3score -= 4;
-    p3fails.push(`sunny.grammar_deep_dive 길이 ${sunnyText.length}자 < 100자`);
+    p3fails.push(`sunny.grammar_points ${grammarPoints.length}개 < 3개`);
+  } else if (sunnyText.length < 100) {
+    p3score -= 4;
+    p3fails.push(`sunny.grammar_points 정의 분량 ${sunnyText.length}자 < 100자`);
   }
 
   p3score = Math.max(0, p3score);
