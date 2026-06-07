@@ -93,8 +93,25 @@ export interface DenseBundle {
     lex: {
       vocabulary_entries: Array<{ word: string; pos?: string; definition: string; korean: string }>;
       paraphrase_layers: Array<{ keyword: string; synonyms: string[]; contextual_equivalents: string[]; antonym_negation: string }>;
-      /** 초보 자습용 간단 단어 테스트 (빈칸 문장 또는 영영 정의 → 정답 단어) */
-      vocab_quiz: Array<{ question: string; answer: string }>;
+      etymology_groups: Array<{
+        root_word: string;
+        root_meaning: string;
+        connection_story: string;
+        derived_words: Array<{
+          word: string;
+          pos: string;
+          structure: string;
+          korean_meanings: string[];
+          english_definition: string;
+          examples: Array<{ sentence: string; translation: string }>;
+        }>;
+        quizzes: Array<{
+          question: string;
+          options: string[];
+          correct_answer: string;
+          explanation: string;
+        }>;
+      }>;
     };
     villanelle: {
       topic_master: { title_ko: string; core_message: string };

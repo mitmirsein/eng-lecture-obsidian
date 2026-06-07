@@ -154,7 +154,7 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
 - Luna: 문장별 청크 직독직해 + 전체 통독 해석(full_translation) + ${maskingNote}
 - Sunny: 핵심 구문 정밀 분석 (grammar_points — 구문 항목 3개 이상, 각 항목 정의 3문장 이상·예문 2개 이상, reduce 지시 무관 항상 필수) + 5초 시각 판별법
 - Miranda: 문장 간 응집성 고리 분석 (Why-So-How)
-- Lex: 핵심 어휘 정의(최소 10개) + 3단계 재진술 DB + 간단 단어 테스트(vocab_quiz, 최소 8문항)
+- Lex: 핵심 어휘 정의(최소 10개) + 3단계 재진술 DB + 라틴어 어원 중심 단어 확장학습 그룹 및 실전 퀴즈(etymology_groups, 최소 1~2개 어근 그룹 및 어근별 최소 2개 퀴즈)
 - Villanelle: 제목·핵심 메시지 topic_master
 - Quill: 서술형 영작 과제 (Q→A→한국어) + 내용 확인 Q&A (comprehension_qa, 최소 4문항)
 
@@ -218,16 +218,37 @@ export function buildDenseAnalysisPrompt(input: GenerationInput, triage?: Triage
     },
     "lex": {
       "vocabulary_entries": [
-        {"word": "원형 (지문 핵심어 최소 10개 — 배열 길이 10 이상 필수)", "pos": "n./v./adj. 등", "definition": "영영 정의", "korean": "한국어 뜻"},
-        {"word": "원형2", "pos": "v.", "definition": "영영 정의", "korean": "한국어 뜻"},
-        {"word": "원형3", "pos": "adj.", "definition": "영영 정의", "korean": "한국어 뜻"}
+        {"word": "원형 (지문 핵심어 최소 10개 — 배열 길이 10 이상 필수)", "pos": "n./v./adj. 등", "definition": "영영 정의", "korean": "한국어 뜻"}
       ],
       "paraphrase_layers": [
-        {"keyword": "핵심어1", "synonyms": ["동의어1", "동의어2"], "contextual_equivalents": ["문맥 대체어1"], "antonym_negation": "반의어 부정"},
-        {"keyword": "핵심어2", "synonyms": ["동의어1"], "contextual_equivalents": ["문맥 대체어1", "문맥 대체어2"], "antonym_negation": "반의어 부정"}
+        {"keyword": "핵심어1", "synonyms": ["동의어1", "동의어2"], "contextual_equivalents": ["문맥 대체어1"], "antonym_negation": "반의어 부정"}
       ],
-      "vocab_quiz": [
-        {"question": "빈칸 문장 또는 영영 정의 (예: The scientist tried to ___ the data. / to make something clear)", "answer": "정답 단어 (vocabulary_entries에서 출제, 최소 8문항)"}
+      "etymology_groups": [
+        {
+          "root_word": "라틴어/그리스어 어근 (예: tract, parere, mit/miss)",
+          "root_meaning": "어근의 핵심 뜻 (예: draw/pull, appear, send)",
+          "connection_story": "어근과 접두사가 결합하는 논리 및 다의어의 의미들이 하나의 이미지로 결합하는 방식에 대한 흥미로운 스토리 설명 (~한다체)",
+          "derived_words": [
+            {
+              "word": "파생어",
+              "pos": "verb/noun/adj",
+              "structure": "접두사 + 어근 분석 (예: con(together) + tract(draw))",
+              "korean_meanings": ["한국어 뜻1", "한국어 뜻2"],
+              "english_definition": "영영 정의",
+              "examples": [
+                {"sentence": "영어 예문", "translation": "한국어 번역"}
+              ]
+            }
+          ],
+          "quizzes": [
+            {
+              "question": "어원 기반 학습 상태를 점검하는 실전 퀴즈 (객관식 혹은 주관식 빈칸 채우기)",
+              "options": ["객관식인 경우 선지 4개. 주관식 빈칸 채우기면 빈 배열 []"],
+              "correct_answer": "정답 단어 혹은 어구",
+              "explanation": "퀴즈 상세 해설 (~한다체)"
+            }
+          ]
+        }
       ]
     },
     "villanelle": {
@@ -380,11 +401,29 @@ ${isMaskingTarget ? "**⚡ 5초 판별법:** (sunny.visual_cue)" : ""}
 ### **🔄 3단계 재진술 DB**
 | 키워드 | 동의어 | 문맥적 대체어 | 반의어 부정 |
 (lex.paraphrase_layers 전체 → 표. 최소 2행 필수. synonyms·contextual_equivalents 배열 값은 " / " 구분으로 셀 안에 나열 — JSON 대괄호 그대로 출력 금지. 행 누락 = 오류)
-### **✏️ 어휘 셀프 테스트**
-(lex.vocab_quiz 전체 → **Q{n}.** question 형식으로 문제만 먼저 나열. 정답은 여기 쓰지 않는다)
 
-> [!note]- 정답 확인 (펼치기)
-> (lex.vocab_quiz 전체 → {n}. answer 형식. 문항 수와 정답 수 일치 필수)
+### **🧬 라틴어 어원 중심 단어 확장 (Etymology Groups)**
+(lex.etymology_groups의 각 그룹에 대해 아래 구조로 출력)
+#### **🔍 어근: {root_word} ({root_meaning})**
+> **어근 스토리:** {connection_story}
+
+| 단어 | 어원 구조 | 품사 | 뜻 | 영문 정의 |
+|---|---|---|---|---|
+(group.derived_words 전체를 표로 출력. korean_meanings 배열 값은 쉼표 구분으로 나열)
+
+##### **💡 단어별 활용 예문**
+(각 derived_word에 대해 examples가 존재할 경우에만 아래 형식으로 순회 출력)
+- **{word}**
+  - {sentence} ({translation})
+
+##### **✍️ 실전 어원 Quiz**
+(각 quiz에 대해 아래 형식으로 순회 출력)
+**Q{idx}.** {question}
+(options가 존재하고 비어있지 않은 경우: A. options[0], B. options[1]... 순으로 나열)
+
+> [!question]- 💡 정답 및 해설 보기 (펼치기)
+> - **정답:** {correct_answer}
+> - **해설:** {explanation}
 
 ---
 

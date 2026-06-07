@@ -8,6 +8,7 @@ import { generateLectureAssets } from "./pipeline/openaiCompatible";
 import { runPreflight } from "./pipeline/preflight";
 import type { GenerationInput, MosaicSettings } from "./pipeline/types";
 import { ProgressModal } from "./ui/ProgressModal";
+import { generateQuizHTML } from "./pipeline/quizTemplate";
 import pretendardRegularDataUrl from "../assets/fonts/pretendard/Pretendard-Regular.otf";
 import pretendardBoldDataUrl from "../assets/fonts/pretendard/Pretendard-Bold.otf";
 
@@ -149,7 +150,7 @@ export default class MosaicLecturePlugin extends Plugin {
     this.addSettingTab(new MosaicSettingTab(this.app, this));
 
     // 사이드바 리본 아이콘 추가
-    this.addRibbonIcon("book-open-check", "Mosaic: Generate Lecture Asset", async () => {
+    this.addRibbonIcon("book-a", "Mosaic: Generate Lecture Asset", async () => {
       const view = this.app.workspace.getActiveViewOfType(MarkdownView);
       if (!view || !view.file) {
         new Notice("Mosaic: 활성화된 노트가 없습니다.");
@@ -174,7 +175,7 @@ export default class MosaicLecturePlugin extends Plugin {
         menu.addItem((item) => {
           item
             .setTitle("Generate Mosaic Lecture Asset")
-            .setIcon("book-open-check")
+            .setIcon("book-a")
             .onClick(async () => {
               const file = view.file;
               const sourceText = editor.getSelection().trim() || editor.getValue().trim();
@@ -448,6 +449,14 @@ export default class MosaicLecturePlugin extends Plugin {
 
       const masterMarkdown = normalizeGeneratedMarkdown(result.masterMarkdown.trim());
       await this.upsertText(`${folder}/[MOSAIC]_${slug}.md`, masterMarkdown + "\n");
+
+      const etymologyGroups = result.bundle?.instructors?.lex?.etymology_groups || [];
+      if (etymologyGroups.length > 0) {
+        const displayTitle = slug.replace(/_/g, " ");
+        const quizHTML = generateQuizHTML(slug, displayTitle, etymologyGroups);
+        await this.upsertText(`${folder}/[QUIZ]_${slug}.html`, quizHTML);
+        console.log("Mosaic: [QUIZ] HTML written successfully.");
+      }
       
       if (this.settings.generatePdf) {
         // 방금 생성한 파일을 가져오자.
