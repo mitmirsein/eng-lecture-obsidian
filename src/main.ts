@@ -18,7 +18,7 @@ function slugify(value: string): string {
     .trim()
     .replace(/[^\w가-힣.-]+/g, "_")
     .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "") || "passage";
+    .replace(/^[._-]+|[._-]+$/g, "") || "passage";
 }
 
 function errorMessage(error: unknown): string {
@@ -380,8 +380,9 @@ export default class MosaicLecturePlugin extends Plugin {
     const level = frontmatter.level || frontmatter.Level || this.settings.defaultLevel;
     const targetGrade = frontmatter.target_grade || frontmatter.Target_Grade || this.settings.defaultTargetGrade;
     const passageId = frontmatter.passage_id || slugify(file.basename);
-    
-    const slug = passageId;
+
+    // passage_id가 frontmatter에서 올 경우 경로/파일명에 그대로 쓰이면 경로 탈출 위험 — 항상 slugify
+    const slug = slugify(String(passageId));
     const folder = `${this.settings.outputRoot}/${slug}`;
     const input: GenerationInput = {
       slug,

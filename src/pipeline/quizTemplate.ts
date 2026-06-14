@@ -4,15 +4,32 @@
  * Theme: Glassmorphism / Amber Gold Dark Mode (Lex Persona theme)
  */
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function generateQuizHTML(passageId: string, title: string, etymologyGroups: any[]): string {
-  const jsonData = JSON.stringify(etymologyGroups);
-  
+  // 스크립트 컨텍스트에 안전하게 임베드: </script> 탈출·JSON 하이재킹 차단
+  // (JSON 문자열 내 < 등은 JS 파서가 원래 문자로 복원하므로 값은 그대로 유지된다)
+  const jsonData = JSON.stringify(etymologyGroups)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+  const safeTitle = escapeHtml(title);
+
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>\${title} — 어원 기반 대화형 퀴즈</title>
+  <title>${safeTitle} — 어원 기반 대화형 퀴즈</title>
   <style>
     /* Reset & Fonts */
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
@@ -608,7 +625,7 @@ export function generateQuizHTML(passageId: string, title: string, etymologyGrou
   <div class="container">
     <header>
       <span class="badge">Lex 어원 랩</span>
-      <h1 id="main-title">\${title}</h1>
+      <h1 id="main-title">${safeTitle}</h1>
       <p>라틴어/그리스어 어원 기반 입체적 단어 연상 학습</p>
     </header>
 
@@ -706,7 +723,17 @@ export function generateQuizHTML(passageId: string, title: string, etymologyGrou
 
   <script>
     // Data Injected from Engine
-    const etymologyData = \${jsonData};
+    const etymologyData = ${jsonData};
+
+    // 신뢰할 수 없는 LLM 텍스트를 innerHTML에 넣기 전 이스케이프
+    function esc(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     // DOM Elements
     const studyPanel = document.getElementById('study-panel');
@@ -762,8 +789,8 @@ export function generateQuizHTML(passageId: string, title: string, etymologyGrou
             derived.examples.forEach(ex => {
               examplesHTML += \\\`
                 <li class="example-item">
-                  \\\\\\\${ex.sentence}
-                  <span class="example-trans">\\\\\\\${ex.translation}</span>
+                  \\\\\\\${esc(ex.sentence)}
+                  <span class="example-trans">\\\\\\\${esc(ex.translation)}</span>
                 </li>
               \\\`;
             });
@@ -773,11 +800,11 @@ export function generateQuizHTML(passageId: string, title: string, etymologyGrou
           derivedHTML += \\\`
             <div class="derived-item">
               <div class="derived-title">
-                <span>\\\\\\\${derived.word}</span>
-                <span class="derived-structure">\\\\\\\${derived.structure}</span>
+                <span>\\\\\\\${esc(derived.word)}</span>
+                <span class="derived-structure">\\\\\\\${esc(derived.structure)}</span>
               </div>
-              <div class="derived-meaning">\\\\\\\${meaningsList} <span style="font-weight: normal; font-size: 0.9rem; color: var(--text-muted);">(\\\\\\\${derived.pos})</span></div>
-              <span class="derived-english-def">\\\\\\\${derived.english_definition}</span>
+              <div class="derived-meaning">\\\\\\\${esc(meaningsList)} <span style="font-weight: normal; font-size: 0.9rem; color: var(--text-muted);">(\\\\\\\${esc(derived.pos)})</span></div>
+              <span class="derived-english-def">\\\\\\\${esc(derived.english_definition)}</span>
               \\\\\\\${examplesHTML}
             </div>
           \\\`;
@@ -785,11 +812,11 @@ export function generateQuizHTML(passageId: string, title: string, etymologyGrou
 
         card.innerHTML = \\\`
           <div class="root-header">
-            <h3 class="root-word-title">🔍 어근: \\\\\\\${group.root_word}</h3>
-            <span class="root-meaning-badge">\\\\\\\${group.root_meaning}</span>
+            <h3 class="root-word-title">🔍 어근: \\\\\\\${esc(group.root_word)}</h3>
+            <span class="root-meaning-badge">\\\\\\\${esc(group.root_meaning)}</span>
           </div>
           <div class="story-box">
-            \\\\\\\${group.connection_story.replace(/\\\\n/g, '<br>')}
+            \\\\\\\${esc(group.connection_story).replace(/\\\\n/g, '<br>')}
           </div>
           <div style="margin-bottom: 1.2rem; font-weight: 700; font-size: 1.1rem; color: var(--accent-color);">
             🧬 어원 계보 (Family Tree)
@@ -918,7 +945,7 @@ export function generateQuizHTML(passageId: string, title: string, etymologyGrou
 
     // Show Explanation
     function showExplanation(text, correctAns) {
-      explanationBox.innerHTML = \\\`<p><strong>정답:</strong> \\\\\\\${correctAns}</p><p style="margin-top: 0.5rem;"><strong>해설:</strong> \\\\\\\${text}</p>\\\`;
+      explanationBox.innerHTML = \\\`<p><strong>정답:</strong> \\\\\\\${esc(correctAns)}</p><p style="margin-top: 0.5rem;"><strong>해설:</strong> \\\\\\\${esc(text)}</p>\\\`;
       explanationBox.style.display = 'block';
     }
 
