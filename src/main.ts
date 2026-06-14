@@ -592,6 +592,10 @@ ${errorMessage(error)}
     try {
       const args = [
         mdPath,
+        // 보안: 마크다운(LLM·원본 지문) 내 raw TeX 통과를 차단해 \input 등 파일 읽기·자원 고갈 벡터 제거
+        // (shell-escape는 미사용이라 \write18 셸 실행은 이미 차단됨). 수식($..$)·헤더 주입은 영향 없음.
+        "-f",
+        "markdown-raw_tex",
         `--pdf-engine=${xelatex}`,
         "-V",
         "geometry:a4paper,margin=3cm",
